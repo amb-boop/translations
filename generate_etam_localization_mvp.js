@@ -570,26 +570,36 @@ const QUALITY_MARKERS = [
 
 const SPELLING_WARNING_PATTERNS = {
   all: [
-    { pattern: /[ÃÂ�]|â€¢|�/, label: "Encoding or mojibake characters detected" },
+    { pattern: /[\u00c2\u00c3\uFFFD]|Ã|Â|ï¿½|â€™|â€œ|â€|&[#a-z0-9]+;/i, label: "Encoding, mojibake, or HTML entity detected" },
     { pattern: /\b([A-Za-zÀ-ÿ]{3,})\s+\1\b/i, label: "Repeated word" },
     { pattern: /\s+[,.!?;:]/, label: "Space before punctuation" },
+    { pattern: /[!?]\s*\./, label: "Duplicated punctuation" },
+    { pattern: /\b24hBra\.\s*:/i, label: "Machine punctuation around 24hBra" },
   ],
   es_ES: [
     { pattern: /\bencage\b/i, label: "Possible typo: encage" },
     { pattern: /\bbanador\b/i, label: "Possible typo: banador" },
     { pattern: /\balgodon\b/i, label: "Possible typo: algodon" },
     { pattern: /\bsujetador n\.?\s*4:\s*copas finas\b/i, label: "Possible literal construction in title" },
+    { pattern: /\bsujetador\s+sujetador\b/i, label: "Repeated product type in Spanish title" },
+    { pattern: /\bpantalones cortos cortos\b/i, label: "Repeated product type in Spanish copy" },
+    { pattern: /\b(corpiños|pel[ií]culas protectoras|brinda soporte|reemplazar las pel[ií]culas|meter en la lavadora)\b/i, label: "Literal Spanish machine translation" },
   ],
   pl_PL: [
     { pattern: /\bpizama\b/i, label: "Possible typo: pizama" },
     { pattern: /\bbawelna\b/i, label: "Possible typo: bawelna" },
     { pattern: /\bgleboki\b/i, label: "Possible typo: gleboki" },
     { pattern: /\ben\s+[a-ząćęłńóśźż]+\b/i, label: "French preposition left in Polish copy" },
+    { pattern: /\btriangle en tulle\b/i, label: "French/English hybrid left in Polish title" },
+    { pattern: /\bnie zak[łl]ada biustonosza\b/i, label: "Literal Polish machine translation" },
   ],
   cz_CZ: [
     { pattern: /\bmikrovlakno\b/i, label: "Possible typo: mikrovlakno" },
     { pattern: /\bpyzam/i, label: "Possible typo around pyzamo" },
     { pattern: /\bavec\s+[a-zá-ž]+\b/i, label: "French preposition left in Czech copy" },
+    { pattern: /\btop en crochet\b/i, label: "French preposition left in Czech title" },
+    { pattern: /\btop bikin\b/i, label: "Possible Czech product wording issue" },
+    { pattern: /\bkoupelov[ýy]ch kapsl/i, label: "Literal Czech machine translation" },
   ],
   en_UK: [
     { pattern: /\bpanties\b/i, label: "Use UK retail term: knickers" },
@@ -601,18 +611,24 @@ const SPELLING_WARNING_PATTERNS = {
     { pattern: /\bdentelle\b/i, label: "French term left in Dutch copy" },
     { pattern: /\bslipjesschuif\b/i, label: "Unnatural Dutch compound" },
     { pattern: /\bkan van nemen\b/i, label: "Possible literal French construction" },
+    { pattern: /\bnieuwigheden\b/i, label: "Unnatural Dutch retail wording" },
+    { pattern: /\bgesatineerds\b/i, label: "Dutch adjective agreement issue" },
+    { pattern: /\b(je|jouw)\b[\s\S]{0,160}\b(u|uw)\b|\b(u|uw)\b[\s\S]{0,160}\b(je|jouw)\b/i, label: "Mixed je/u register in Dutch copy" },
   ],
   de_CH: [
     { pattern: /\bsoutien-gorge\b/i, label: "French term left in German copy" },
     { pattern: /\bdentelle\b/i, label: "French term left in German copy" },
     { pattern: /\bdieser\s+3er-pack\s+baumwollslips\b/i, label: "German agreement check" },
     { pattern: /\bunterstutzung\b/i, label: "Possible missing umlaut: Unterstützung" },
+    { pattern: /ß/, label: "Swiss German copy should avoid sharp s" },
+    { pattern: /\|\|\|/, label: "Feed separator left in German copy" },
   ],
   de_DE: [
     { pattern: /\bsoutien-gorge\b/i, label: "French term left in German copy" },
     { pattern: /\bdentelle\b/i, label: "French term left in German copy" },
     { pattern: /\bdieser\s+3er-pack\s+baumwollslips\b/i, label: "German agreement check" },
     { pattern: /\bunterstutzung\b/i, label: "Possible missing umlaut: Unterstützung" },
+    { pattern: /\|\|\|/, label: "Feed separator left in German copy" },
   ],
 };
 
@@ -670,6 +686,15 @@ function compareText(value) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+function decodeHtmlEntities(value) {
+  return String(value || "")
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&reg;/gi, "®")
+    .replace(/&copy;/gi, "©")
+    .replace(/&euro;/gi, "€");
 }
 
 function glossaryTitleFromFrench(frTitle, locale) {
@@ -730,7 +755,7 @@ function shouldForceGlossaryTitle(row) {
 }
 
 function repairText(value) {
-  return normalizeText(value)
+  return decodeHtmlEntities(normalizeText(value))
     .replace(/&#0*39;/g, "'")
     .replace(/&#0*34;/g, '"')
     .replace(/&apos;/g, "'")
@@ -1097,14 +1122,67 @@ function needsTargetTranslation(value, frValue) {
   return Boolean(frValue && compareText(text) === compareText(frValue)) || hasFrenchResidue(text);
 }
 
+function cleanMachineTranslationArtifacts(text) {
+  return repairText(text)
+    .replace(/\s+([,.!?;:])/g, "$1")
+    .replace(/([!?])\s*\./g, "$1")
+    .replace(/\b24hBra\.\s*:/gi, "24hBra:")
+    .replace(/\s*\|\|\|\s*/g, " ")
+    .replace(/\s*•\s*/g, " • ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function polishTranslatedText(text, locale) {
-  let output = repairText(text);
+  let output = cleanMachineTranslationArtifacts(text);
   if (locale === "es_ES") {
     output = output
       .replace(/Ligeros y elegantes, estos shorts están confeccionados en encaje\. Está realzado con un delicado lazo\./gi, "Ligero y elegante, este shorty está confeccionado en encaje y realzado con un delicado lazo.")
       .replace(/Tiene bolsillos de parche\./gi, "Cuenta con bolsillos de parche.")
       .replace(/Estampado de estrellas de la temporada/gi, "El estampado estrella de la temporada")
-      .replace(/Sin sujetador\. Nueva sensación\./gi, "No bra. New feel.");
+      .replace(/Sin sujetador\. Nueva sensación\./gi, "No bra. New feel.")
+      .replace(/\bSoporte de silicona sin tirantes\b/gi, "Sujetador adhesivo de silicona sin tirantes")
+      .replace(/\bSujetador\s+sujetador\b/gi, "Sujetador")
+      .replace(/\bpantalones cortos cortos\b/gi, "shorts")
+      .replace(/\bbrinda soporte\b/gi, "ofrece sujeción")
+      .replace(/\bcorpiños\b/gi, "prendas bustier")
+      .replace(/\bpelículas protectoras\b/gi, "láminas protectoras")
+      .replace(/\bReemplazar las láminas protectoras\b/g, "Volver a colocar las láminas protectoras")
+      .replace(/\breemplazar las láminas protectoras\b/g, "volver a colocar las láminas protectoras")
+      .replace(/\bNo meter en la lavadora\b/gi, "No lavar a máquina")
+      .replace(/\bSoporte medio\b/g, "Sujeción media");
+  }
+  if (locale === "pl_PL") {
+    output = output
+      .replace(/\bBiustonosz triangle en tulle\b/gi, "Biustonosz trójkątny z tiulu")
+      .replace(/\btriangle en tulle\b/gi, "trójkątny z tiulu");
+  }
+  if (locale === "cz_CZ") {
+    output = output
+      .replace(/\bTop en crochet\b/gi, "Háčkovaný top")
+      .replace(/\btop bikin\b/gi, "horní díl bikin")
+      .replace(/\bkoupelových kapslí\b/gi, "plavkové kapsule");
+  }
+  if (locale === "en_UK") {
+    output = output
+      .replace(/\bpanties\b/gi, "knickers")
+      .replace(/\bpajamas\b/gi, "pyjamas")
+      .replace(/\bpajama\b/gi, "pyjama")
+      .replace(/\bwireless\b/gi, "non-wired");
+  }
+  if (locale === "nl_BE") {
+    output = output
+      .replace(/Maak plaats voor de nieuwigheden in uw slipjesschuif[.!]? Ze zitten zo comfortabel, dat u ze bijna zou vergeten\.\.\. en het lijkt alsof u er geen afscheid kan van nemen\.?/gi, "Maak ruimte voor nieuwe favorieten in uw lingerielade. Ze zitten zo comfortabel dat u ze bijna vergeet... en waarschijnlijk niet meer wilt missen.")
+      .replace(/\bgesatineerds\b/gi, "gesatineerd")
+      .replace(/\bLycraÂ®\b/g, "Lycra®");
+  }
+  if (locale === "de_CH" || locale === "de_DE") {
+    output = output
+      .replace(/\bMittlere Unterstützung\b/g, "Mittlerer Halt")
+      .replace(/\bmittlere Unterstützung\b/g, "mittlerer Halt");
+  }
+  if (locale === "de_CH") {
+    output = output.replace(/ß/g, "ss");
   }
   return output;
 }
@@ -1463,6 +1541,7 @@ async function enforceTargetLanguage(rows, messages) {
       row.proposed_title = polishUkLocalizationText(row.proposed_title);
       row.proposed_long_description = polishUkLocalizationText(row.proposed_long_description);
     }
+    markProposedTextQuality(row);
     row.recommended_content_block = contentBlock(row.proposed_title, row.proposed_long_description);
   }
   writeJson(TRANSLATION_CACHE_FILE, cache);
@@ -1568,6 +1647,39 @@ function confidenceForIssues(issues, proposalSource) {
   if (issues.includes("French source changed")) return 82;
   if (proposalSource === "assisted creation") return 68;
   return 90;
+}
+
+function splitIssues(value) {
+  return String(value || "")
+    .split("|")
+    .map((issue) => issue.trim())
+    .filter(Boolean);
+}
+
+function addIssue(row, issue) {
+  const issues = splitIssues(row.change_type);
+  if (!issues.includes(issue)) issues.push(issue);
+  row.change_type = issues.join(" | ");
+}
+
+function markProposedTextQuality(row) {
+  const warnings = spellingWarningsForItem({
+    title: row.proposed_title,
+    long_description: row.proposed_long_description,
+  }, row.locale);
+  if (!warnings.length) return;
+  addIssue(row, "Spelling or terminology warning");
+  const note = `Proposed text quality check: ${[...new Set(warnings)].join(", ")}.`;
+  row.source_logic = row.source_logic ? `${row.source_logic} ${note}` : note;
+  row.confidence = Math.min(Number(row.confidence) || 90, 76);
+}
+
+function refreshQualityMetrics(countryResults) {
+  for (const result of Object.values(countryResults)) {
+    result.metrics.quality_warnings = result.rows.filter((row) =>
+      /Critical quality warning|Spelling or terminology warning/i.test(row.change_type)
+    ).length;
+  }
 }
 
 function buildQueues(snapshots, previousSnapshots, options) {
@@ -2689,6 +2801,7 @@ async function main() {
 
   const queue = buildQueues(snapshots, previousSnapshots, options);
   await enforceTargetLanguage(queue.allQueueRows, messages);
+  refreshQualityMetrics(queue.countryResults);
   const noFeedsLoaded = Object.keys(loaded).length === 0;
   const firstRunMessage = noFeedsLoaded
     ? "No feed could be loaded. Add local files to input/ or retry online mode when the URLs respond."
