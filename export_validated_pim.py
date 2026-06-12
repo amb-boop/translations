@@ -23,8 +23,8 @@ COUNTRY_SHEETS = {
 
 PIM_LOCALES = {
     "es_ES": "es_ES",
-    "pl_PL": "pl_PL",
-    "cz_CZ": "cz_CZ",
+    "pl_PL": "PL",
+    "cz_CZ": "CZ",
     "en_UK": "en_GB",
 }
 
