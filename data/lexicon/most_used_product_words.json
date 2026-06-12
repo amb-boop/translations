@@ -1,0 +1,972 @@
+{
+  "generated_at": "2026-05-07T14:49:59.894Z",
+  "source": "daily_translation_queue.csv",
+  "locales": {
+    "es_ES": [
+      {
+        "word": "algodón",
+        "count": 542
+      },
+      {
+        "word": "sujetador",
+        "count": 495
+      },
+      {
+        "word": "encaje",
+        "count": 431
+      },
+      {
+        "word": "pijama",
+        "count": 424
+      },
+      {
+        "word": "estampado",
+        "count": 288
+      },
+      {
+        "word": "pantalón",
+        "count": 288
+      },
+      {
+        "word": "bikini",
+        "count": 236
+      },
+      {
+        "word": "tanga",
+        "count": 228
+      },
+      {
+        "word": "braga",
+        "count": 227
+      },
+      {
+        "word": "camiseta",
+        "count": 221
+      },
+      {
+        "word": "corto",
+        "count": 201
+      },
+      {
+        "word": "mangas",
+        "count": 188
+      },
+      {
+        "word": "microfibra",
+        "count": 187
+      },
+      {
+        "word": "manga",
+        "count": 175
+      },
+      {
+        "word": "corta",
+        "count": 152
+      },
+      {
+        "word": "cuello",
+        "count": 130
+      },
+      {
+        "word": "rayas",
+        "count": 129
+      },
+      {
+        "word": "bordado",
+        "count": 127
+      },
+      {
+        "word": "copas",
+        "count": 126
+      },
+      {
+        "word": "vestido",
+        "count": 117
+      },
+      {
+        "word": "triangular",
+        "count": 116
+      },
+      {
+        "word": "camisa",
+        "count": 110
+      },
+      {
+        "word": "detalles",
+        "count": 100
+      },
+      {
+        "word": "finas",
+        "count": 93
+      },
+      {
+        "word": "braguita",
+        "count": 89
+      },
+      {
+        "word": "larga",
+        "count": 88
+      },
+      {
+        "word": "aros",
+        "count": 86
+      },
+      {
+        "word": "bañador",
+        "count": 86
+      },
+      {
+        "word": "camisón",
+        "count": 77
+      },
+      {
+        "word": "chaqueta",
+        "count": 74
+      },
+      {
+        "word": "lazada",
+        "count": 73
+      },
+      {
+        "word": "modal",
+        "count": 72
+      },
+      {
+        "word": "lino",
+        "count": 71
+      },
+      {
+        "word": "cuadros",
+        "count": 69
+      },
+      {
+        "word": "triángulo",
+        "count": 66
+      },
+      {
+        "word": "balconnet",
+        "count": 61
+      },
+      {
+        "word": "tipo",
+        "count": 57
+      },
+      {
+        "word": "jersey",
+        "count": 53
+      },
+      {
+        "word": "satinado",
+        "count": 53
+      },
+      {
+        "word": "cintura",
+        "count": 51
+      },
+      {
+        "word": "push-up",
+        "count": 50
+      },
+      {
+        "word": "falda",
+        "count": 49
+      },
+      {
+        "word": "floral",
+        "count": 48
+      },
+      {
+        "word": "brasileña",
+        "count": 47
+      },
+      {
+        "word": "elástico",
+        "count": 46
+      },
+      {
+        "word": "largo",
+        "count": 46
+      },
+      {
+        "word": "brillante",
+        "count": 44
+      },
+      {
+        "word": "alto",
+        "count": 44
+      },
+      {
+        "word": "punto",
+        "count": 44
+      },
+      {
+        "word": "tirantes",
+        "count": 43
+      },
+      {
+        "word": "short",
+        "count": 42
+      },
+      {
+        "word": "bordados",
+        "count": 42
+      },
+      {
+        "word": "ancho",
+        "count": 40
+      },
+      {
+        "word": "traje",
+        "count": 40
+      },
+      {
+        "word": "detalle",
+        "count": 39
+      },
+      {
+        "word": "alta",
+        "count": 37
+      },
+      {
+        "word": "corazones",
+        "count": 37
+      },
+      {
+        "word": "efecto",
+        "count": 36
+      },
+      {
+        "word": "pronunciado",
+        "count": 36
+      },
+      {
+        "word": "baño",
+        "count": 36
+      },
+      {
+        "word": "bandeau",
+        "count": 36
+      },
+      {
+        "word": "escote",
+        "count": 35
+      },
+      {
+        "word": "hipster",
+        "count": 35
+      },
+      {
+        "word": "piezas",
+        "count": 35
+      },
+      {
+        "word": "corte",
+        "count": 34
+      },
+      {
+        "word": "estampada",
+        "count": 32
+      },
+      {
+        "word": "para",
+        "count": 32
+      },
+      {
+        "word": "lunares",
+        "count": 31
+      },
+      {
+        "word": "braguitas",
+        "count": 31
+      },
+      {
+        "word": "conjunto",
+        "count": 31
+      },
+      {
+        "word": "botones",
+        "count": 30
+      },
+      {
+        "word": "satén",
+        "count": 30
+      },
+      {
+        "word": "flores",
+        "count": 29
+      },
+      {
+        "word": "mezcla",
+        "count": 29
+      },
+      {
+        "word": "bralette",
+        "count": 27
+      },
+      {
+        "word": "integrado",
+        "count": 26
+      },
+      {
+        "word": "cinturón",
+        "count": 26
+      },
+      {
+        "word": "acanalado",
+        "count": 26
+      },
+      {
+        "word": "extraíbles",
+        "count": 26
+      },
+      {
+        "word": "clásico",
+        "count": 26
+      }
+    ],
+    "pl_PL": [
+      {
+        "word": "biustonosz",
+        "count": 510
+      },
+      {
+        "word": "bikini",
+        "count": 308
+      },
+      {
+        "word": "szorty",
+        "count": 300
+      },
+      {
+        "word": "koronki",
+        "count": 299
+      },
+      {
+        "word": "piżamowe",
+        "count": 277
+      },
+      {
+        "word": "stringi",
+        "count": 258
+      },
+      {
+        "word": "koszulka",
+        "count": 249
+      },
+      {
+        "word": "mikrofibry",
+        "count": 222
+      },
+      {
+        "word": "haftem",
+        "count": 210
+      },
+      {
+        "word": "bawełny",
+        "count": 207
+      },
+      {
+        "word": "spodnie",
+        "count": 183
+      },
+      {
+        "word": "góra",
+        "count": 178
+      },
+      {
+        "word": "piżamowa",
+        "count": 162
+      },
+      {
+        "word": "koronkowymi",
+        "count": 156
+      },
+      {
+        "word": "detalami",
+        "count": 150
+      },
+      {
+        "word": "wzory",
+        "count": 144
+      },
+      {
+        "word": "dekoltem",
+        "count": 136
+      },
+      {
+        "word": "majtki",
+        "count": 135
+      },
+      {
+        "word": "typu",
+        "count": 117
+      },
+      {
+        "word": "paski",
+        "count": 113
+      },
+      {
+        "word": "nocna",
+        "count": 112
+      },
+      {
+        "word": "push-up",
+        "count": 106
+      },
+      {
+        "word": "koronkowe",
+        "count": 93
+      },
+      {
+        "word": "koszula",
+        "count": 91
+      },
+      {
+        "word": "głębokim",
+        "count": 90
+      },
+      {
+        "word": "bawełną",
+        "count": 90
+      },
+      {
+        "word": "satynowa",
+        "count": 88
+      },
+      {
+        "word": "kąpielowy",
+        "count": 84
+      },
+      {
+        "word": "trójkątny",
+        "count": 81
+      },
+      {
+        "word": "ramiączkach",
+        "count": 76
+      },
+      {
+        "word": "jednoczęściowy",
+        "count": 76
+      },
+      {
+        "word": "kąpielowego",
+        "count": 73
+      },
+      {
+        "word": "bawełniana",
+        "count": 72
+      },
+      {
+        "word": "balkonetka",
+        "count": 70
+      },
+      {
+        "word": "satynowe",
+        "count": 68
+      },
+      {
+        "word": "trójkątna",
+        "count": 67
+      },
+      {
+        "word": "figi",
+        "count": 66
+      },
+      {
+        "word": "bawełniane",
+        "count": 63
+      },
+      {
+        "word": "tanga",
+        "count": 60
+      },
+      {
+        "word": "piżamy",
+        "count": 58
+      },
+      {
+        "word": "fiszbin",
+        "count": 58
+      },
+      {
+        "word": "wysokim",
+        "count": 57
+      },
+      {
+        "word": "tiulu",
+        "count": 56
+      },
+      {
+        "word": "kostiumu",
+        "count": 55
+      },
+      {
+        "word": "zestaw",
+        "count": 54
+      },
+      {
+        "word": "strój",
+        "count": 54
+      },
+      {
+        "word": "nadrukiem",
+        "count": 53
+      },
+      {
+        "word": "hipster",
+        "count": 52
+      },
+      {
+        "word": "rękawem",
+        "count": 48
+      },
+      {
+        "word": "pointelle",
+        "count": 48
+      },
+      {
+        "word": "krótkim",
+        "count": 46
+      },
+      {
+        "word": "lekkie",
+        "count": 44
+      },
+      {
+        "word": "serduszka",
+        "count": 44
+      },
+      {
+        "word": "wkładkami",
+        "count": 44
+      },
+      {
+        "word": "stanem",
+        "count": 43
+      },
+      {
+        "word": "koronką",
+        "count": 42
+      },
+      {
+        "word": "wypełnienie",
+        "count": 40
+      },
+      {
+        "word": "skarpetki",
+        "count": 38
+      },
+      {
+        "word": "halka",
+        "count": 38
+      },
+      {
+        "word": "kratkę",
+        "count": 37
+      },
+      {
+        "word": "opalizujący",
+        "count": 35
+      },
+      {
+        "word": "wiązania",
+        "count": 35
+      },
+      {
+        "word": "wiązany",
+        "count": 34
+      },
+      {
+        "word": "trójkąt",
+        "count": 34
+      },
+      {
+        "word": "wykończeniami",
+        "count": 34
+      },
+      {
+        "word": "spodenki",
+        "count": 33
+      },
+      {
+        "word": "motywem",
+        "count": 32
+      },
+      {
+        "word": "wzór",
+        "count": 32
+      },
+      {
+        "word": "opalizująca",
+        "count": 31
+      },
+      {
+        "word": "satynowy",
+        "count": 31
+      },
+      {
+        "word": "wzorem",
+        "count": 31
+      },
+      {
+        "word": "kostium",
+        "count": 30
+      },
+      {
+        "word": "gumką",
+        "count": 29
+      },
+      {
+        "word": "wyjmowanymi",
+        "count": 28
+      },
+      {
+        "word": "kwiaty",
+        "count": 28
+      },
+      {
+        "word": "body",
+        "count": 27
+      },
+      {
+        "word": "miseczkami",
+        "count": 27
+      },
+      {
+        "word": "kwiatowym",
+        "count": 26
+      },
+      {
+        "word": "jedwabiu",
+        "count": 26
+      },
+      {
+        "word": "bezszwowe",
+        "count": 26
+      }
+    ],
+    "cz_CZ": [
+      {
+        "word": "podprsenka",
+        "count": 396
+      },
+      {
+        "word": "pyžamové",
+        "count": 323
+      },
+      {
+        "word": "plavek",
+        "count": 217
+      },
+      {
+        "word": "krajky",
+        "count": 212
+      },
+      {
+        "word": "tanga",
+        "count": 207
+      },
+      {
+        "word": "šortky",
+        "count": 200
+      },
+      {
+        "word": "výšivkou",
+        "count": 172
+      },
+      {
+        "word": "mikrovlákna",
+        "count": 151
+      },
+      {
+        "word": "kalhotky",
+        "count": 150
+      },
+      {
+        "word": "detaily",
+        "count": 136
+      },
+      {
+        "word": "kalhoty",
+        "count": 132
+      },
+      {
+        "word": "bavlny",
+        "count": 126
+      },
+      {
+        "word": "krajkovými",
+        "count": 120
+      },
+      {
+        "word": "vzorem",
+        "count": 107
+      },
+      {
+        "word": "košile",
+        "count": 100
+      },
+      {
+        "word": "tričko",
+        "count": 99
+      },
+      {
+        "word": "bavlněné",
+        "count": 98
+      },
+      {
+        "word": "vzory",
+        "count": 97
+      },
+      {
+        "word": "spodní",
+        "count": 96
+      },
+      {
+        "word": "horní",
+        "count": 88
+      },
+      {
+        "word": "plavky",
+        "count": 87
+      },
+      {
+        "word": "košilka",
+        "count": 84
+      },
+      {
+        "word": "noční",
+        "count": 81
+      },
+      {
+        "word": "saténové",
+        "count": 72
+      },
+      {
+        "word": "výstřihem",
+        "count": 70
+      },
+      {
+        "word": "push-up",
+        "count": 68
+      },
+      {
+        "word": "košíčky",
+        "count": 65
+      },
+      {
+        "word": "krajkou",
+        "count": 63
+      },
+      {
+        "word": "bavlnou",
+        "count": 61
+      },
+      {
+        "word": "jednodílné",
+        "count": 58
+      },
+      {
+        "word": "hlubokým",
+        "count": 55
+      },
+      {
+        "word": "saténová",
+        "count": 54
+      },
+      {
+        "word": "trojúhelníkový",
+        "count": 54
+      },
+      {
+        "word": "vyjímatelnými",
+        "count": 48
+      },
+      {
+        "word": "pyžamová",
+        "count": 48
+      },
+      {
+        "word": "bavlněná",
+        "count": 48
+      },
+      {
+        "word": "potiskem",
+        "count": 46
+      },
+      {
+        "word": "pointelle",
+        "count": 46
+      },
+      {
+        "word": "zavazování",
+        "count": 46
+      },
+      {
+        "word": "pruhy",
+        "count": 46
+      },
+      {
+        "word": "pasem",
+        "count": 45
+      },
+      {
+        "word": "trojúhelník",
+        "count": 44
+      },
+      {
+        "word": "rukávy",
+        "count": 43
+      },
+      {
+        "word": "vycpávkami",
+        "count": 42
+      },
+      {
+        "word": "trojúhelníková",
+        "count": 42
+      },
+      {
+        "word": "tílko",
+        "count": 41
+      },
+      {
+        "word": "motivy",
+        "count": 41
+      },
+      {
+        "word": "kostic",
+        "count": 40
+      },
+      {
+        "word": "hipster",
+        "count": 38
+      },
+      {
+        "word": "tylu",
+        "count": 36
+      },
+      {
+        "word": "typu",
+        "count": 34
+      },
+      {
+        "word": "květinovým",
+        "count": 33
+      },
+      {
+        "word": "body",
+        "count": 33
+      },
+      {
+        "word": "vysokým",
+        "count": 32
+      },
+      {
+        "word": "balkonetka",
+        "count": 32
+      },
+      {
+        "word": "tenké",
+        "count": 30
+      },
+      {
+        "word": "krátkými",
+        "count": 30
+      },
+      {
+        "word": "efektem",
+        "count": 28
+      },
+      {
+        "word": "sada",
+        "count": 28
+      },
+      {
+        "word": "dekoltem",
+        "count": 28
+      },
+      {
+        "word": "krátká",
+        "count": 25
+      },
+      {
+        "word": "braletka",
+        "count": 25
+      },
+      {
+        "word": "motivem",
+        "count": 25
+      },
+      {
+        "word": "bikini",
+        "count": 25
+      },
+      {
+        "word": "elastickým",
+        "count": 24
+      },
+      {
+        "word": "short",
+        "count": 24
+      },
+      {
+        "word": "leopardím",
+        "count": 24
+      },
+      {
+        "word": "krajkové",
+        "count": 24
+      },
+      {
+        "word": "pyžama",
+        "count": 23
+      },
+      {
+        "word": "ponožky",
+        "count": 23
+      },
+      {
+        "word": "podprsenkou",
+        "count": 22
+      },
+      {
+        "word": "kulatým",
+        "count": 22
+      },
+      {
+        "word": "ramínky",
+        "count": 22
+      },
+      {
+        "word": "detailem",
+        "count": 22
+      },
+      {
+        "word": "zavazováním",
+        "count": 22
+      },
+      {
+        "word": "srdíčkovými",
+        "count": 22
+      },
+      {
+        "word": "saténový",
+        "count": 22
+      },
+      {
+        "word": "balconette",
+        "count": 22
+      },
+      {
+        "word": "měkkými",
+        "count": 22
+      },
+      {
+        "word": "integrovanou",
+        "count": 21
+      }
+    ]
+  }
+}
