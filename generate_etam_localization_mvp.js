@@ -1514,7 +1514,8 @@ async function enforceTargetLanguage(rows, messages) {
     const frTitle = repairText(row.current_fr_title);
     const frDescription = repairText(row.current_fr_long_description);
 
-    if (frTitle && needsTargetTranslation(row.proposed_title, frTitle)) {
+    const titleNeedsLocalization = /Title not localized|Missing translation/i.test(row.change_type || "");
+    if (titleNeedsLocalization && frTitle && needsTargetTranslation(row.proposed_title, frTitle)) {
       tasks.push(async () => {
         row.proposed_title = await translateFromFrench(frTitle, row.locale, cache);
       });
