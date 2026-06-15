@@ -4,7 +4,9 @@ Weekly localization review tool for Etam product feeds.
 
 The official business interface is `review_interface.html`. The Excel workbook is kept only as an old fallback artifact and should not be used as the source of validation.
 
-The tool compares the French reference feed with Spain, Poland and Czech Republic feeds, deduplicates at `reference_mc` level, creates daily MC snapshots, compares them with the latest baseline, and generates country review queues.
+The tool compares the French reference feed with the localized Lengow feeds, deduplicates at `reference_mc` level, creates daily MC snapshots, compares them with the latest baseline, and generates country review queues.
+
+Current review scope: AH26 only, identified by `sap_saisj = 2026` and `sap_saiso = 0002` / `2`.
 
 ## Commands
 

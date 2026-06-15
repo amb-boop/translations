@@ -10,6 +10,9 @@ const BASELINE_DIR = path.join(ROOT, "data", "baseline");
 const RUN_DATE = new Date().toISOString().slice(0, 10);
 const TRANSLATION_CACHE_FILE = path.join(ROOT, "data", "translation_cache.json");
 const PRODUCT_GLOSSARY_FILE = path.join(ROOT, "data", "lexicon", "product_glossary.json");
+const REVIEW_SEASON_YEAR = "2026";
+const REVIEW_SEASON_CODE = "002";
+const REVIEW_SEASON_LABEL = "AH26";
 
 const FEEDS = {
   fr_FR: {
@@ -580,7 +583,6 @@ const SPELLING_WARNING_PATTERNS = {
     { pattern: /\bencage\b/i, label: "Possible typo: encage" },
     { pattern: /\bbanador\b/i, label: "Possible typo: banador" },
     { pattern: /\balgodon\b/i, label: "Possible typo: algodon" },
-    { pattern: /\bsujetador n\.?\s*4:\s*copas finas\b/i, label: "Possible literal construction in title" },
     { pattern: /\bsujetador\s+sujetador\b/i, label: "Repeated product type in Spanish title" },
     { pattern: /\bpantalones cortos cortos\b/i, label: "Repeated product type in Spanish copy" },
     { pattern: /\b(corpiños|pel[ií]culas protectoras|brinda soporte|reemplazar las pel[ií]culas|meter en la lavadora)\b/i, label: "Literal Spanish machine translation" },
@@ -602,31 +604,24 @@ const SPELLING_WARNING_PATTERNS = {
     { pattern: /\bkoupelov[ýy]ch kapsl/i, label: "Literal Czech machine translation" },
   ],
   en_UK: [
-    { pattern: /\bpanties\b/i, label: "Use UK retail term: knickers" },
-    { pattern: /\bpajama/i, label: "Use UK spelling: pyjama" },
-    { pattern: /\bwireless\b/i, label: "Use UK lingerie term: non-wired" },
+    { pattern: /\bsoutien-gorge|culotte|nuisette|dentelle|broderie|maillot de bain\b/i, label: "French term left in English copy" },
   ],
   nl_BE: [
     { pattern: /\bsoutien-gorge\b/i, label: "French term left in Dutch copy" },
     { pattern: /\bdentelle\b/i, label: "French term left in Dutch copy" },
     { pattern: /\bslipjesschuif\b/i, label: "Unnatural Dutch compound" },
     { pattern: /\bkan van nemen\b/i, label: "Possible literal French construction" },
-    { pattern: /\bnieuwigheden\b/i, label: "Unnatural Dutch retail wording" },
     { pattern: /\bgesatineerds\b/i, label: "Dutch adjective agreement issue" },
-    { pattern: /\b(je|jouw)\b[\s\S]{0,160}\b(u|uw)\b|\b(u|uw)\b[\s\S]{0,160}\b(je|jouw)\b/i, label: "Mixed je/u register in Dutch copy" },
   ],
   de_CH: [
     { pattern: /\bsoutien-gorge\b/i, label: "French term left in German copy" },
     { pattern: /\bdentelle\b/i, label: "French term left in German copy" },
-    { pattern: /\bdieser\s+3er-pack\s+baumwollslips\b/i, label: "German agreement check" },
     { pattern: /\bunterstutzung\b/i, label: "Possible missing umlaut: Unterstützung" },
-    { pattern: /ß/, label: "Swiss German copy should avoid sharp s" },
     { pattern: /\|\|\|/, label: "Feed separator left in German copy" },
   ],
   de_DE: [
     { pattern: /\bsoutien-gorge\b/i, label: "French term left in German copy" },
     { pattern: /\bdentelle\b/i, label: "French term left in German copy" },
-    { pattern: /\bdieser\s+3er-pack\s+baumwollslips\b/i, label: "German agreement check" },
     { pattern: /\bunterstutzung\b/i, label: "Possible missing umlaut: Unterstützung" },
     { pattern: /\|\|\|/, label: "Feed separator left in German copy" },
   ],
@@ -959,16 +954,17 @@ function pick(record, names) {
   return "";
 }
 
+function normalizeSeasonCode(value) {
+  const cleaned = normalizeText(value);
+  if (/^0*1$/.test(cleaned)) return "001";
+  if (/^0*2$/.test(cleaned)) return "002";
+  return "";
+}
+
 function deriveSeason(record) {
   const values = Object.values(record).map((value) => normalizeText(value));
   const namedYear = normalizeText(pick(record, ["sap_saisj", "season_year", "annee", "year"]));
   const namedCode = normalizeText(pick(record, ["sap_saiso", "season_code", "saison", "season"]));
-  const normalizeSeasonCode = (value) => {
-    const cleaned = normalizeText(value);
-    if (/^0*1$/.test(cleaned)) return "001";
-    if (/^0*2$/.test(cleaned)) return "002";
-    return "";
-  };
   const seasonYear = /^20\d{2}$/.test(namedYear)
     ? namedYear
     : values.find((value) => /^20\d{2}$/.test(value)) || "";
@@ -978,6 +974,11 @@ function deriveSeason(record) {
     ? `${seasonCode === "001" ? "PE" : "AH"}${seasonYear.slice(-2)}`
     : "";
   return { seasonYear, seasonCode, seasonLabel };
+}
+
+function isReviewSeason(item) {
+  return normalizeText(item?.season_year) === REVIEW_SEASON_YEAR &&
+    normalizeSeasonCode(item?.season_code) === REVIEW_SEASON_CODE;
 }
 
 function seasonFeedCandidates() {
@@ -1682,6 +1683,14 @@ function refreshQualityMetrics(countryResults) {
   }
 }
 
+function countReviewSeasonRefs(refs, primaryMap, fallbackMap = new Map()) {
+  let count = 0;
+  for (const reference of refs) {
+    if (isReviewSeason(primaryMap.get(reference)) || isReviewSeason(fallbackMap.get(reference))) count += 1;
+  }
+  return count;
+}
+
 function buildQueues(snapshots, previousSnapshots, options) {
   const frCurrent = snapshots.fr_FR || [];
   const frPrevious = previousSnapshots.fr_FR || [];
@@ -1689,6 +1698,7 @@ function buildQueues(snapshots, previousSnapshots, options) {
   const frPreviousMap = mapByReference(frPrevious);
   const frDiff = compareSnapshots(frCurrent, frPrevious);
   const frByModel = mapByModel(frCurrent);
+  const frCurrentInScope = frCurrent.filter(isReviewSeason);
   const firstRun = frPrevious.length === 0;
 
   const countryResults = {};
@@ -1697,6 +1707,8 @@ function buildQueues(snapshots, previousSnapshots, options) {
   for (const [locale, country] of Object.entries(COUNTRIES)) {
     const current = snapshots[locale] || [];
     const previous = previousSnapshots[locale] || [];
+    const currentInScope = current.filter(isReviewSeason);
+    const previousInScope = previous.filter(isReviewSeason);
     const currentMap = mapByReference(current);
     const previousMap = mapByReference(previous);
     const localDiff = compareSnapshots(current, previous);
@@ -1735,6 +1747,7 @@ function buildQueues(snapshots, previousSnapshots, options) {
         season_code: frItem?.season_code || "",
         season_label: frItem?.season_label || "",
       };
+      if (!isReviewSeason(effectiveLocal) && !isReviewSeason(frItem)) continue;
       const issues = issueListForItem({
         reference,
         locale,
@@ -1839,13 +1852,13 @@ function buildQueues(snapshots, previousSnapshots, options) {
       rows.push(row);
     }
 
-    const currentAnomalies = current.filter((item) =>
+    const currentAnomalies = currentInScope.filter((item) =>
       isTitleNotLocalized(item, frCurrentMap.get(item.reference_mc), locale) ||
       !normalizeText(item.long_description) ||
       hasQualityWarning(item) ||
       hasSpellingWarning(item, locale)
     );
-    const previousAnomalies = previous.filter((item) =>
+    const previousAnomalies = previousInScope.filter((item) =>
       isTitleNotLocalized(item, frPreviousMap.get(item.reference_mc), locale) ||
       !normalizeText(item.long_description) ||
       hasQualityWarning(item) ||
@@ -1858,14 +1871,14 @@ function buildQueues(snapshots, previousSnapshots, options) {
       csv: country.csv,
       rows,
       metrics: {
-        total_mc_references: current.length,
+        total_mc_references: currentInScope.length,
         title_translation_issues: titleIssues,
         missing_long_descriptions: missingDescriptions,
         same_model_colorway_reusable_descriptions: sameModelReusable,
         mc_to_review: rows.length,
-        new_mc_references_today: localDiff.newRefs.size + frDiff.newRefs.size,
-        french_titles_changed: frDiff.titleChanged.size,
-        french_long_descriptions_changed: frDiff.longDescriptionChanged.size,
+        new_mc_references_today: countReviewSeasonRefs(localDiff.newRefs, currentMap) + countReviewSeasonRefs(frDiff.newRefs, frCurrentMap),
+        french_titles_changed: countReviewSeasonRefs(frDiff.titleChanged, frCurrentMap, currentMap),
+        french_long_descriptions_changed: countReviewSeasonRefs(frDiff.longDescriptionChanged, frCurrentMap, currentMap),
         country_content_gaps_detected: currentAnomalies.length,
         persistent_issues: persistentIssues,
         resolved_since_last_run: firstRun ? 0 : Math.max(0, previousAnomalies.length - currentAnomalies.length),
@@ -1879,11 +1892,11 @@ function buildQueues(snapshots, previousSnapshots, options) {
   return {
     firstRun,
     frMetrics: {
-      total_mc_references: frCurrent.length,
-      new_mc_references_today: frDiff.newRefs.size,
-      french_titles_changed: frDiff.titleChanged.size,
-      french_long_descriptions_changed: frDiff.longDescriptionChanged.size,
-      products_removed_from_feed: frDiff.removedRefs.size,
+      total_mc_references: frCurrentInScope.length,
+      new_mc_references_today: countReviewSeasonRefs(frDiff.newRefs, frCurrentMap),
+      french_titles_changed: countReviewSeasonRefs(frDiff.titleChanged, frCurrentMap),
+      french_long_descriptions_changed: countReviewSeasonRefs(frDiff.longDescriptionChanged, frCurrentMap),
+      products_removed_from_feed: countReviewSeasonRefs(frDiff.removedRefs, frPreviousMap),
     },
     countryResults,
     allQueueRows,
@@ -2802,6 +2815,7 @@ async function main() {
   const queue = buildQueues(snapshots, previousSnapshots, options);
   await enforceTargetLanguage(queue.allQueueRows, messages);
   refreshQualityMetrics(queue.countryResults);
+  messages.push(`[ok] review scope limited to ${REVIEW_SEASON_LABEL} (${REVIEW_SEASON_YEAR}, season code ${REVIEW_SEASON_CODE}).`);
   const noFeedsLoaded = Object.keys(loaded).length === 0;
   const firstRunMessage = noFeedsLoaded
     ? "No feed could be loaded. Add local files to input/ or retry online mode when the URLs respond."
