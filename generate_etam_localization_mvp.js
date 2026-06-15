@@ -2386,14 +2386,35 @@ function renderReviewInterface(summary, rows) {
     const learnedLexicon = JSON.parse(localStorage.getItem("etamLexiconLearning") || "[]");
     const validationStorageKey = "etamLocalizationValidation:" + "${RUN_DATE}";
     const savedValidationState = JSON.parse(localStorage.getItem(validationStorageKey) || "{}");
-    const state = new Map(rows.map((row, index) => [index, {
-      titleOk: savedValidationState[rowKey(row)]?.titleOk ?? (row.title_validation === "Approved" || row.status === "Approved"),
-      descriptionOk: savedValidationState[rowKey(row)]?.descriptionOk ?? (row.description_validation === "Approved" || row.status === "Approved"),
-      titleRequired: titleRequiresValidation(row),
-      descriptionRequired: descriptionRequiresValidation(row),
-      title: savedValidationState[rowKey(row)]?.title ?? (row.proposed_title || row.current_local_title || row.current_fr_title || ""),
-      description: savedValidationState[rowKey(row)]?.description ?? (row.proposed_long_description || row.current_local_long_description || row.current_fr_long_description || "")
-    }]));
+    function baseTitle(row) {
+      return row.proposed_title || row.current_local_title || row.current_fr_title || "";
+    }
+    function baseDescription(row) {
+      return row.proposed_long_description || row.current_local_long_description || row.current_fr_long_description || "";
+    }
+    function reusableSavedState(row) {
+      const saved = savedValidationState[rowKey(row)];
+      if (!saved) return {};
+      const titleStillCurrent = saved.baseTitle === baseTitle(row);
+      const descriptionStillCurrent = saved.baseDescription === baseDescription(row);
+      return {
+        titleOk: titleStillCurrent ? saved.titleOk : false,
+        descriptionOk: descriptionStillCurrent ? saved.descriptionOk : false,
+        title: titleStillCurrent ? saved.title : undefined,
+        description: descriptionStillCurrent ? saved.description : undefined,
+      };
+    }
+    const state = new Map(rows.map((row, index) => {
+      const saved = reusableSavedState(row);
+      return [index, {
+        titleOk: saved.titleOk ?? (row.title_validation === "Approved" || row.status === "Approved"),
+        descriptionOk: saved.descriptionOk ?? (row.description_validation === "Approved" || row.status === "Approved"),
+        titleRequired: titleRequiresValidation(row),
+        descriptionRequired: descriptionRequiresValidation(row),
+        title: saved.title ?? baseTitle(row),
+        description: saved.description ?? baseDescription(row)
+      }];
+    }));
     document.querySelectorAll(".tone-field").forEach(field => {
       field.value = toneState[field.dataset.locale] || "";
       field.addEventListener("input", () => {
@@ -2425,12 +2446,14 @@ function renderReviewInterface(summary, rows) {
       rows.forEach((row, index) => {
         const saved = state.get(index);
         if (!saved) return;
-        if (saved.titleOk || saved.descriptionOk || saved.title !== (row.proposed_title || row.current_local_title || row.current_fr_title || "") || saved.description !== (row.proposed_long_description || row.current_local_long_description || row.current_fr_long_description || "")) {
+        if (saved.titleOk || saved.descriptionOk || saved.title !== baseTitle(row) || saved.description !== baseDescription(row)) {
           snapshot[rowKey(row)] = {
             titleOk: saved.titleOk,
             descriptionOk: saved.descriptionOk,
             title: saved.title,
-            description: saved.description
+            description: saved.description,
+            baseTitle: baseTitle(row),
+            baseDescription: baseDescription(row)
           };
         }
       });
@@ -2450,7 +2473,7 @@ function renderReviewInterface(summary, rows) {
       return Boolean((saved.titleOk || !saved.titleRequired) && (saved.descriptionOk || !saved.descriptionRequired));
     }
     function titleRequiresValidation(row) {
-      return /Title not localized|Missing translation|Critical quality warning|Spelling or terminology warning/i.test(row.change_type || "");
+      return /Title not localized|Missing translation/i.test(row.change_type || "");
     }
     function descriptionRequiresValidation(row) {
       return /Missing long description|French source changed|French long description changed|Local content may need update|Critical quality warning|Spelling or terminology warning/i.test(row.change_type || "");
