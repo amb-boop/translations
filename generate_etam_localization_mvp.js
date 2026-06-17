@@ -562,13 +562,12 @@ function applyCleanTitleTerms(text, locale) {
 }
 
 const QUALITY_MARKERS = [
-  "TODO",
-  "TBD",
-  "Lorem ipsum",
-  "traduction",
-  "translation needed",
-  "a traduire",
-  "à traduire",
+  { pattern: /\b(?:TODO|TBD)\b/, label: "Technical placeholder TODO/TBD" },
+  { pattern: /Lorem ipsum/i, label: "Lorem ipsum placeholder" },
+  { pattern: /\btraduction\b/i, label: "Translation placeholder" },
+  { pattern: /translation needed/i, label: "Translation needed placeholder" },
+  { pattern: /\ba traduire\b/i, label: "A traduire placeholder" },
+  { pattern: /\b(?:à|Ã )\s+traduire\b/i, label: "A traduire placeholder" },
 ];
 
 const SPELLING_WARNING_PATTERNS = {
@@ -1224,8 +1223,15 @@ function isClearlyFrenchTitle(text, frTitle = "") {
 }
 
 function hasQualityWarning(item) {
+  return qualityWarningsForItem(item).length > 0;
+}
+
+function qualityWarningsForItem(item) {
   const content = `${item?.title || ""} ${item?.long_description || ""}`;
-  return QUALITY_MARKERS.some((marker) => content.toLowerCase().includes(marker.toLowerCase()));
+  if (!content.trim()) return [];
+  return QUALITY_MARKERS
+    .filter((marker) => marker?.pattern?.test(content))
+    .map(({ label }) => label);
 }
 
 function spellingWarningsForItem(item, locale) {
@@ -1802,8 +1808,12 @@ function buildQueues(snapshots, previousSnapshots, options) {
       const proposedDescription = missingDescription || frSourceChanged
         ? proposal.text
         : effectiveLocal.long_description;
+      const currentQualityWarnings = qualityWarning ? qualityWarningsForItem(effectiveLocal) : [];
       const currentSpellingWarnings = spellingWarning ? spellingWarningsForItem(effectiveLocal, locale) : [];
       const sourceLogicNotes = [proposal.note];
+      if (currentQualityWarnings.length) {
+        sourceLogicNotes.push(`Current critical quality check: ${[...new Set(currentQualityWarnings)].join(", ")}.`);
+      }
       if (currentSpellingWarnings.length) {
         sourceLogicNotes.push(`Current spelling check: ${[...new Set(currentSpellingWarnings)].join(", ")}.`);
       }
