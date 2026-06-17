@@ -59,8 +59,8 @@ const FEEDS = {
 
 const COUNTRIES = {
   es_ES: { name: "Spain", csv: "es_translation_queue.csv", exportLocale: "es_ES", toneLabel: "Spain" },
-  pl_PL: { name: "Poland", csv: "pl_translation_queue.csv", exportLocale: "PL", toneLabel: "Poland" },
-  cz_CZ: { name: "Czech Republic", csv: "cz_translation_queue.csv", exportLocale: "CZ", toneLabel: "Czech Republic" },
+  pl_PL: { name: "Poland", csv: "pl_translation_queue.csv", exportLocale: "pl", toneLabel: "Poland" },
+  cz_CZ: { name: "Czech Republic", csv: "cz_translation_queue.csv", exportLocale: "cz", toneLabel: "Czech Republic" },
   en_UK: { name: "United Kingdom", csv: "uk_translation_queue.csv", exportLocale: "en_GB", toneLabel: "United Kingdom" },
   nl_BE: { name: "Belgium Flemish", csv: "be_nl_translation_queue.csv", exportLocale: "nl_BE", toneLabel: "Belgium Flemish" },
   de_CH: { name: "Switzerland DE", csv: "ch_de_translation_queue.csv", exportLocale: "de_CH", toneLabel: "Swiss German" },

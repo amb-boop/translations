@@ -341,8 +341,8 @@ Files are written to:
 ```text
 exports/YYYY-MM-DD/
   pim_import_es_ES_YYYYMMDD.csv
-  pim_import_PL_YYYYMMDD.csv
-  pim_import_CZ_YYYYMMDD.csv
+  pim_import_pl_YYYYMMDD.csv
+  pim_import_cz_YYYYMMDD.csv
   pim_import_en_GB_YYYYMMDD.csv
   pim_import_nl_BE_YYYYMMDD.csv
   pim_import_de_CH_YYYYMMDD.csv
