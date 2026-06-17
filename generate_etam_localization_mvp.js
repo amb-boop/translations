@@ -577,9 +577,9 @@ const SPELLING_WARNING_PATTERNS = {
     { pattern: /\b([A-Za-zÀ-ÿ]{3,})\s+\1\b/i, label: "Repeated word" },
     { pattern: /\s+[,.!?;:]/, label: "Space before punctuation" },
     { pattern: /[!?]\s*\./, label: "Duplicated punctuation" },
-    { pattern: /\b24hBra\.\s*:/i, label: "Machine punctuation around 24hBra" },
   ],
   es_ES: [
+    { pattern: /\bcaracco\b/i, label: "Possible typo: caracco" },
     { pattern: /\bencage\b/i, label: "Possible typo: encage" },
     { pattern: /\bbanador\b/i, label: "Possible typo: banador" },
     { pattern: /\balgodon\b/i, label: "Possible typo: algodon" },
@@ -624,6 +624,10 @@ const SPELLING_WARNING_PATTERNS = {
     { pattern: /\|\|\|/, label: "Feed separator left in German copy" },
   ],
 };
+
+const SPELLING_ISSUE = "Spelling warning";
+const LEGACY_SPELLING_ISSUE = "Spelling or terminology warning";
+const NON_SPELLING_WARNING_LABEL = /French|Literal|hybrid|wording|machine translation/i;
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -1232,7 +1236,7 @@ function spellingWarningsForItem(item, locale) {
     ...(SPELLING_WARNING_PATTERNS[locale] || []),
   ];
   return patterns
-    .filter(({ pattern }) => pattern.test(content))
+    .filter(({ pattern, label }) => pattern.test(content) && !NON_SPELLING_WARNING_LABEL.test(label))
     .map(({ label }) => label);
 }
 
@@ -1621,7 +1625,7 @@ function issueListForItem(params) {
   if (titleNotLocalized) issues.push("Title not localized");
   if (missingDescription) issues.push("Missing long description");
   if (qualityWarning) issues.push("Critical quality warning");
-  if (spellingWarning) issues.push("Spelling or terminology warning");
+  if (spellingWarning) issues.push(SPELLING_ISSUE);
 
   const previousHadIssue = previousLocalItem && (
     isTitleNotLocalized(previousLocalItem, frItem, locale) ||
@@ -1640,7 +1644,7 @@ function issueListForItem(params) {
 
 function confidenceForIssues(issues, proposalSource) {
   if (issues.includes("Critical quality warning")) return 74;
-  if (issues.includes("Spelling or terminology warning")) return 76;
+  if (issues.includes(SPELLING_ISSUE) || issues.includes(LEGACY_SPELLING_ISSUE)) return 76;
   if (proposalSource === "local same-model/colorway compatible") return 94;
   if (proposalSource === "FR exact") return 88;
   if (issues.includes("French source changed")) return 82;
@@ -1667,8 +1671,8 @@ function markProposedTextQuality(row) {
     long_description: row.proposed_long_description,
   }, row.locale);
   if (!warnings.length) return;
-  addIssue(row, "Spelling or terminology warning");
-  const note = `Proposed text quality check: ${[...new Set(warnings)].join(", ")}.`;
+  addIssue(row, SPELLING_ISSUE);
+  const note = `Proposed spelling check: ${[...new Set(warnings)].join(", ")}.`;
   row.source_logic = row.source_logic ? `${row.source_logic} ${note}` : note;
   row.confidence = Math.min(Number(row.confidence) || 90, 76);
 }
@@ -1676,7 +1680,7 @@ function markProposedTextQuality(row) {
 function refreshQualityMetrics(countryResults) {
   for (const result of Object.values(countryResults)) {
     result.metrics.quality_warnings = result.rows.filter((row) =>
-      /Critical quality warning|Spelling or terminology warning/i.test(row.change_type)
+      /Critical quality warning|Spelling warning|Spelling or terminology warning/i.test(row.change_type)
     ).length;
   }
 }
@@ -1764,7 +1768,7 @@ function buildQueues(snapshots, previousSnapshots, options) {
         "Title not localized",
         "Missing long description",
         "Critical quality warning",
-        "Spelling or terminology warning",
+        SPELLING_ISSUE,
         "Persistent issue",
         "Local content may need update",
       ].includes(issue));
@@ -1775,7 +1779,7 @@ function buildQueues(snapshots, previousSnapshots, options) {
         "Title not localized",
         "Missing long description",
         "Critical quality warning",
-        "Spelling or terminology warning",
+        SPELLING_ISSUE,
         "Persistent issue",
       ].includes(issue));
       if (!mustProcess || issues.length === 0) continue;
@@ -1784,7 +1788,7 @@ function buildQueues(snapshots, previousSnapshots, options) {
       const missingDescription = issues.includes("Missing long description");
       const frSourceChanged = issues.includes("French source changed");
       const qualityWarning = issues.includes("Critical quality warning");
-      const spellingWarning = issues.includes("Spelling or terminology warning");
+      const spellingWarning = issues.includes(SPELLING_ISSUE) || issues.includes(LEGACY_SPELLING_ISSUE);
       const needsValidation = titleNotLocalized || missingDescription || frSourceChanged || qualityWarning || spellingWarning;
       if (!needsValidation) continue;
       const proposal = frSourceChanged && frItem?.long_description
@@ -1798,6 +1802,11 @@ function buildQueues(snapshots, previousSnapshots, options) {
       const proposedDescription = missingDescription || frSourceChanged
         ? proposal.text
         : effectiveLocal.long_description;
+      const currentSpellingWarnings = spellingWarning ? spellingWarningsForItem(effectiveLocal, locale) : [];
+      const sourceLogicNotes = [proposal.note];
+      if (currentSpellingWarnings.length) {
+        sourceLogicNotes.push(`Current spelling check: ${[...new Set(currentSpellingWarnings)].join(", ")}.`);
+      }
 
       if (titleNotLocalized) titleIssues += 1;
       if (missingDescription) missingDescriptions += 1;
@@ -1836,7 +1845,7 @@ function buildQueues(snapshots, previousSnapshots, options) {
         proposed_long_description: repairText(proposedDescription),
         current_content_block: contentBlock(repairText(effectiveLocal.title), repairText(effectiveLocal.long_description)),
         recommended_content_block: contentBlock(repairText(proposedTitle), repairText(proposedDescription)),
-        source_logic: proposal.note,
+        source_logic: sourceLogicNotes.filter(Boolean).join(" "),
         proposal_source: proposal.source,
         confidence: confidenceForIssues(issues, proposal.source),
         status: "Draft",
@@ -1881,7 +1890,7 @@ function buildQueues(snapshots, previousSnapshots, options) {
         persistent_issues: persistentIssues,
         resolved_since_last_run: firstRun ? 0 : Math.max(0, previousAnomalies.length - currentAnomalies.length),
         products_removed_from_feed: localDiff.removedRefs.size,
-        quality_warnings: qualityWarnings + rows.filter((row) => /Spelling or terminology warning/i.test(row.change_type)).length,
+        quality_warnings: qualityWarnings + rows.filter((row) => /Spelling warning|Spelling or terminology warning/i.test(row.change_type)).length,
       },
     };
     allQueueRows.push(...rows);
@@ -2015,7 +2024,7 @@ function convertLegacyRows(legacyData, seasonLookup = new Map()) {
         if (/Missing long description/i.test(issue)) return !hasLocalLongDescription;
         return true;
       });
-      if (titleIsAlreadyLocal && hasLocalLongDescription && !issues.some((issue) => /French source changed|quality warning|New MC reference|Persistent issue/i.test(issue))) {
+      if (titleIsAlreadyLocal && hasLocalLongDescription && !issues.some((issue) => /French source changed|quality warning|Spelling warning|New MC reference|Persistent issue/i.test(issue))) {
         continue;
       }
       const source = normalizeText(item.source_type || "legacy review data");
@@ -2086,7 +2095,7 @@ function buildSummaryFromRows(rows, messages, legacyPath) {
         persistent_issues: countryRows.filter((row) => /Persistent issue/i.test(row.change_type)).length,
         resolved_since_last_run: 0,
         products_removed_from_feed: 0,
-        quality_warnings: countryRows.filter((row) => /Critical quality warning|Spelling or terminology warning/i.test(row.change_type)).length,
+        quality_warnings: countryRows.filter((row) => /Critical quality warning|Spelling warning|Spelling or terminology warning/i.test(row.change_type)).length,
       },
     };
   }
@@ -2473,12 +2482,12 @@ function renderReviewInterface(summary, rows) {
       return /Title not localized|Missing translation/i.test(row.change_type || "");
     }
     function descriptionRequiresValidation(row) {
-      return /Missing long description|French source changed|French long description changed|Local content may need update|Critical quality warning|Spelling or terminology warning/i.test(row.change_type || "");
+      return /Missing long description|French source changed|French long description changed|Local content may need update|Critical quality warning|Spelling warning|Spelling or terminology warning/i.test(row.change_type || "");
     }
     function issueClass(issue) {
       if (/Title not localized|Missing translation/i.test(issue)) return "tag-title";
       if (/Missing long description/i.test(issue)) return "tag-description";
-      if (/Spelling or terminology warning|Critical quality warning/i.test(issue)) return "tag-quality";
+      if (/Spelling warning|Spelling or terminology warning|Critical quality warning/i.test(issue)) return "tag-quality";
       return "tag-other";
     }
     function renderRecap(visible) {
