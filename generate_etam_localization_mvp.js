@@ -40,6 +40,16 @@ const FEEDS = {
     fileName: "etam_uk_en_gb_lengow_mcvt.csv",
     url: "https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_uk_en_gb_lengow_mcvt.csv",
   },
+  en_US: {
+    label: "United States feed",
+    fileName: "etam_us_en_us_productfeed_mcvt.csv",
+    url: "https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_us_en_us_productfeed_mcvt.csv",
+  },
+  es_MX: {
+    label: "Mexico feed",
+    fileName: "etam_mx_es_lengow_mcvt.csv",
+    url: "https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_mx_es_lengow_mcvt.csv",
+  },
   nl_BE: {
     label: "Belgium Flemish feed",
     fileName: "etam_be_nl_be_lengow_mcvt.csv",
@@ -62,6 +72,8 @@ const COUNTRIES = {
   pl_PL: { name: "Poland", csv: "pl_translation_queue.csv", exportLocale: "pl", toneLabel: "Poland" },
   cz_CZ: { name: "Czech Republic", csv: "cz_translation_queue.csv", exportLocale: "cz", toneLabel: "Czech Republic" },
   en_UK: { name: "United Kingdom", csv: "uk_translation_queue.csv", exportLocale: "en_GB", toneLabel: "United Kingdom" },
+  en_US: { name: "United States", csv: "us_translation_queue.csv", exportLocale: "en_US", toneLabel: "United States" },
+  es_MX: { name: "Mexico", csv: "mx_translation_queue.csv", exportLocale: "es_MX", toneLabel: "Mexico" },
   nl_BE: { name: "Belgium Flemish", csv: "be_nl_translation_queue.csv", exportLocale: "nl_BE", toneLabel: "Belgium Flemish" },
   de_CH: { name: "Switzerland DE", csv: "ch_de_translation_queue.csv", exportLocale: "de_CH", toneLabel: "Swiss German" },
   de_DE: { name: "Germany", csv: "de_translation_queue.csv", exportLocale: "de_DE", toneLabel: "Germany German" },
@@ -72,6 +84,8 @@ const LEGACY_LANG_TO_LOCALE = {
   pl: "pl_PL",
   cz: "cz_CZ",
   uk: "en_UK",
+  us: "en_US",
+  mx: "es_MX",
   nl: "nl_BE",
   be_nl: "nl_BE",
   ch_de: "de_CH",
@@ -80,6 +94,8 @@ const LEGACY_LANG_TO_LOCALE = {
   pl_PL: "pl_PL",
   cz_CZ: "cz_CZ",
   en_UK: "en_UK",
+  en_US: "en_US",
+  es_MX: "es_MX",
   nl_BE: "nl_BE",
   de_CH: "de_CH",
   de_DE: "de_DE",
@@ -90,6 +106,8 @@ const TRANSLATE_TARGETS = {
   pl_PL: "pl",
   cz_CZ: "cs",
   en_UK: "en",
+  en_US: "en",
+  es_MX: "es",
   nl_BE: "nl",
   de_CH: "de",
   de_DE: "de",
@@ -165,6 +183,9 @@ const TITLE_DICTIONARY = {
     [/^Pyjama$/i, "Pyjama"],
   ],
 };
+
+TITLE_DICTIONARY.en_US = TITLE_DICTIONARY.en_UK;
+TITLE_DICTIONARY.es_MX = TITLE_DICTIONARY.es_ES;
 
 const FRENCH_MARKERS = [
   "soutien-gorge",
@@ -326,9 +347,15 @@ const DESCRIPTION_PHRASES_ES = [
   [/silhouette/gi, "silueta"],
 ];
 
+function localeRuleBase(locale) {
+  if (locale === "en_US") return "en_UK";
+  if (locale === "es_MX") return "es_ES";
+  return locale;
+}
+
 function applyTermMap(text, locale) {
   let output = repairText(text);
-  for (const [pattern, replacement] of TITLE_TERMS[locale] || []) {
+  for (const [pattern, replacement] of TITLE_TERMS[locale] || TITLE_TERMS[localeRuleBase(locale)] || []) {
     output = output.replace(pattern, replacement);
   }
   return output.trim();
@@ -336,6 +363,7 @@ function applyTermMap(text, locale) {
 
 function applyCleanTitleTerms(text, locale) {
   let output = repairText(text);
+  const rulesLocale = localeRuleBase(locale);
   const rules = {
     es_ES: [
       [/Jupe longue à sequins/gi, "Falda larga de lentejuelas"],
@@ -557,7 +585,9 @@ function applyCleanTitleTerms(text, locale) {
       [/floral(e)?/gi, "květinové"],
     ],
   };
-  for (const [pattern, replacement] of rules[locale] || []) output = output.replace(pattern, replacement);
+  for (const [pattern, replacement] of rules[locale] || rules[rulesLocale] || []) output = output.replace(pattern, replacement);
+  if (locale === "en_US") output = polishUsLocalizationText(output);
+  if (locale === "es_MX") output = polishMxLocalizationText(output);
   return repairText(output).replace(/\s+/g, " ").trim();
 }
 
@@ -604,6 +634,16 @@ const SPELLING_WARNING_PATTERNS = {
   ],
   en_UK: [
     { pattern: /\bsoutien-gorge|culotte|nuisette|dentelle|broderie|maillot de bain\b/i, label: "French term left in English copy" },
+  ],
+  en_US: [
+    { pattern: /\bsoutien-gorge|culotte|nuisette|dentelle|broderie|maillot de bain\b/i, label: "French term left in English copy" },
+  ],
+  es_MX: [
+    { pattern: /\bcaracco\b/i, label: "Possible typo: caracco" },
+    { pattern: /\bencage\b/i, label: "Possible typo: encage" },
+    { pattern: /\bbanador\b/i, label: "Possible typo: banador" },
+    { pattern: /\balgodon\b/i, label: "Possible typo: algodon" },
+    { pattern: /\bsujetador\s+sujetador\b/i, label: "Repeated product type in Spanish title" },
   ],
   nl_BE: [
     { pattern: /\bsoutien-gorge\b/i, label: "French term left in Flemish copy" },
@@ -1172,6 +1212,8 @@ function polishTranslatedText(text, locale) {
       .replace(/\bpajama\b/gi, "pyjama")
       .replace(/\bwireless\b/gi, "non-wired");
   }
+  if (locale === "en_US") output = polishUsLocalizationText(output);
+  if (locale === "es_MX") output = polishMxLocalizationText(output);
   if (locale === "nl_BE") {
     output = output
       .replace(/\bgesatineerds\b/gi, "gesatineerd")
@@ -1211,6 +1253,42 @@ function polishUkLocalizationText(text) {
     .replace(/\bsoft underwear\b/gi, "soft everyday essentials")
     .replace(/The strips of lace delicately follow the contours of our shapes\./gi, "Delicate lace trims gently follow the curves of the body.")
     .replace(/We love these soft everyday essentials!/gi, "A soft, comfortable style for everyday wear.");
+}
+
+function polishUsLocalizationText(text) {
+  return repairText(text)
+    .replace(/\bknickers\b/gi, "panties")
+    .replace(/\bbriefs\b/gi, "panties")
+    .replace(/\bpyjamas\b/gi, "pajamas")
+    .replace(/\bpyjama\b/gi, "pajama")
+    .replace(/\bnon-wired\b/gi, "wireless")
+    .replace(/\bunderwired\b/gi, "underwire")
+    .replace(/\bmicrofibre\b/gi, "microfiber")
+    .replace(/\bno-VPL\b/gi, "no-show")
+    .replace(/\bbikini bottoms\b/gi, "bikini bottom")
+    .replace(/\bBikini bottoms\b/g, "Bikini bottom")
+    .replace(/\bPack of 3 Cotton Panties\b/g, "3-Pack Cotton Panties")
+    .replace(/\bPack of 3 panties\b/gi, "3-pack panties")
+    .replace(/\bTrousers\b/g, "Pants")
+    .replace(/\btrousers\b/g, "pants")
+    .replace(/\bcolour\b/gi, "color")
+    .replace(/\bfavourite\b/gi, "favorite");
+}
+
+function polishMxLocalizationText(text) {
+  return repairText(text)
+    .replace(/\bbraguitas\b/gi, "panties")
+    .replace(/\bbraguita\b/gi, "panty")
+    .replace(/\bsujetador\b/gi, "bra")
+    .replace(/\bsujetadores\b/gi, "bras")
+    .replace(/\bsin aros\b/gi, "sin varilla")
+    .replace(/\bcon aros\b/gi, "con varilla")
+    .replace(/\btirantes regulables\b/gi, "tirantes ajustables")
+    .replace(/\bbañador\b/gi, "traje de baño")
+    .replace(/\bBanador\b/g, "Traje de baño")
+    .replace(/\bpicardías\b/gi, "camisón")
+    .replace(/\bPantalón de pijama\b/g, "Pantalón de dormir")
+    .replace(/\bpantalón de pijama\b/g, "pantalón de dormir");
 }
 
 function isClearlyFrenchTitle(text, frTitle = "") {
@@ -2394,6 +2472,8 @@ function renderReviewInterface(summary, rows) {
       pl_PL: "Pologne - tone of voice Etam\\n\\nStyle: chaleureux, precis, feminin, oriente benefice produit. Le polonais utilise volontiers des groupes nominaux courts pour les titres et des descriptions concretes. Rester strictement base sur le FR: type produit, matiere, forme, maintien, confort, effet visuel.\\n\\nVocabulaire observe dans Lengow: biustonosz, majtki, stringi, figi, body, bikini, gora od bikini, dol od bikini, jednoczesciowy stroj kapielowy, koszulka nocna, spodnie od pizamy, koszula od pizamy, szorty pizama/piżamowe, koronka, haft, bawelna, mikrofibra, jedwab, satyna, welur, fiszbiny, miseczki, ramiaczka, gleboki dekolt.\\n\\nFormulations naturelles: z koronki, z bawelny, z mikrofibry, z haftem, z koronkowymi detalami, bezszwowe, bez fiszbin, z odpinanymi ramiaczkami, z glebokim dekoltem, w paski, we wzory, z nadrukiem.\\n\\nA eviter: hybrides FR/PL comme 'courte a motifs', 'en bawelna', 'avec', 'dentelle'. Ne pas creer de claims nouveaux; si la description FR manque, laisser vide pour review plutot que d'inventer.",
       cz_CZ: "Republique tcheque - tone of voice Etam\\n\\nStyle: clair, naturel, feminin, informatif. Les titres sont descriptifs et directs, les descriptions restent proches du benefice produit. Conserver le contexte FR sans ajouter d'occasion, de saison ou de conseil de look absent du texte source.\\n\\nVocabulaire observe dans Lengow: podprsenka, kalhotky, tanga, body, horni dil plavek, spodni dil plavek, jednodilne plavky, pyzamove kalhoty, pyzamova kosile, pyzamove sortky, nocni kosilka, tricko, krajka, vysivka, bavlna, mikrovlakno, hedvabi, satén, samet, kostice, kosicky, raminka, hluboky vystrih.\\n\\nFormulations naturelles: z krajky, z bavlny, z mikrovlakna, s krajkovymi detaily, s vysivkou, bezesve, bez kostic, s odnimatelnymi raminky, s hlubokym vystrihem, s prouzky, se vzory, s potiskem, se zavazovanim.\\n\\nA eviter: hybrides FR/CZ comme 'en soie', 'details dentelle', 'pantalon de pyjama', 'avec'. Ne pas proposer une description inventee quand la source FR est absente.",
       en_UK: "United Kingdom - tone of voice Etam\\n\\nCustomer need first: in the UK lingerie market, comfort is the leading expectation, with fit next and style still important. Write copy that sounds reassuring, flattering and easy to shop: comfort, fit, support, smoothness under clothes and confidence should come before decorative detail.\\n\\nStyle: polished, feminine and product-first, with a confident UK retail feel. Keep the copy close to the French source, but make it sound natural for a British lingerie customer: clean, lightly sensorial, never overblown, never too American.\\n\\nStrong UK vocabulary to prefer: knickers rather than panties, non-wired rather than wireless, balcony and plunge for bra shapes, full briefs, high-leg, thong, Brazilian knickers, no-VPL, pyjama set, dressing gown, nightdress, bikini top, bikini bottoms, swimsuit, multipack. Use microfibre, cotton-rich, lace, embroidered, seamless, lightly padded, underwired, removable straps, second-skin and barely-there when the French source supports it.\\n\\nTitle pattern: lead with the product type, then the key material, shape or detail. Keep titles short, retail-ready and concrete: Lace Balcony Bra, Cotton-Rich Full Briefs, Seamless Microfibre Thong, Satin Pyjama Set. Prioritise fit-led and problem-led wording when relevant, such as smoothing, seamless, non-wired, full coverage, plunge or high-leg. Avoid literal French structure and avoid piling up too many descriptors.\\n\\nDescription pattern: start with comfort, fit, feel or finish, then mention the main material or feature, then close with discretion, support, confidence or silhouette if the French source supports it. The rhythm should be fluid and understated, like Boux Avenue and M&S: soft on skin, easy to wear, smooth under clothes, flattering shape, everyday comfort. Matching sets can be mentioned only if the French source genuinely supports it.\\n\\nAvoid: panties, pajama, robe, overly sexy copy, invented styling advice, unsupported benefits, and translations that keep French syntax. Do not add claims unless they are clearly present in the French source.",
+      en_US: "United States - tone of voice Etam\\n\\nSource insight: start from Etam's existing English feed, which already uses simple retail titles and customer-benefit openings. Adapt only the market vocabulary: US English should say panties, pajamas, microfiber, color, wireless, underwire and no-show when those terms fit the source.\\n\\nBenchmark insight: Aerie, Victoria's Secret, ThirdLove and SKIMS put comfort, fit, support, smoothing and second-skin feel first. Keep Etam more refined and French than these players: clear and benefit-led, but less loud and less claim-heavy.\\n\\nTitle pattern: product type first, then pack/material/shape/detail. Prefer retail-ready titles such as 3-Pack Cotton Panties, Lace Push-Up Bra, Wireless Microfiber Bra, No-Show Thong, Satin Pajama Pants. Keep titles short and concrete.\\n\\nDescription pattern: open with comfort, fit, support or feel; then mention material, lace, cups, straps, lining or construction; then close with everyday wear, smoothness under clothes, natural shape or confidence only if the French source supports it.\\n\\nAvoid: UK-only wording such as knickers, pyjama, microfibre, non-wired and no-VPL. Avoid invented claims, over-sexy marketing, and broad spelling/terminology warnings that are only a preference.",
+      es_MX: "Mexico - tone of voice Etam\\n\\nSource insight: use the Mexico feed vocabulary first. It already uses local retail terms such as panties, bra/brasier, packs de panties, copas, varilla, tirantes ajustables, traje de bano, algodon, encaje and microfibra. Keep the copy natural for Mexico, not copied from Spain.\\n\\nBenchmark insight: Women'secret Mexico, Oysho Mexico and Vicky Form are direct and product-led. They describe shape, support, material and visible detail with practical vocabulary. Etam should stay feminine and polished, with a more premium French feel and fewer promotional claims.\\n\\nTitle pattern: product type first, then pack/material/shape/detail. Prefer titles such as Pack de 3 panties de algodon, Bra push-up de encaje, Bra sin varilla de microfibra, Panty de bikini, Pantalon de dormir satinado.\\n\\nDescription pattern: start with comfort, fit or benefit; then specify material, copas, varilla/sin varilla, tirantes, encaje or acabado; then mention discrecion, suavidad, soporte or uso diario only if the French source supports it.\\n\\nAvoid: Spain-only vocabulary when the Mexico feed clearly uses another term, especially sujetador/braguita/banador as defaults. Avoid invented lifestyle advice and do not flag terminology unless there is an obvious typo, extra space, encoding issue or repeated word.",
       nl_BE: "Belgium Flemish - tone of voice Etam\\n\\nSource insight: the Belgium Flemish feed uses polite Belgian retail copy with u/uw, while Hunkemoller Belgium combines everyday basics, elegant sets, feminine and sexy lingerie, plus fit-led categories such as comfort bh's, bh pasvorm and multipack slips. Keep Etam more refined and less promotional than Hunkemoller, but still clear and easy to shop.\\n\\nStyle: warm, direct, polished Flemish retail copy for Belgium. Use u/uw rather than je/jouw for body copy. Prioritise comfort, pasvorm, zachte materialen, ondersteuning, onzichtbaarheid onder kleding and elegant detail. Keep sentences natural and compact. Do not normalise Flemish wording into Netherlands Dutch when it is idiomatic in Belgium.\\n\\nStrong vocabulary to prefer: beha, push-upbeha, balconettebeha, bralette, slip, string, brazilian, hoge tailleslip, body, pyjama, nachthemdje, badpak, bikinitop, bikinibroekje, kant, borduursel, katoen, microvezel, satijn, naadloos, met beugel, zonder beugel, verstelbare bandjes, zachte cups, multipack.\\n\\nTitle pattern: product type first, then pack/material/shape/detail: 3-pack katoenen slips, Kanten balconettebeha, Naadloze microvezelstring, Satijnen pyjamaset. Avoid French order and avoid overlong adjective stacks.\\n\\nDescription pattern: open with comfort, fit or feel, then material/detail, then practical benefit such as discreet under clothes, everyday wear, support or silhouette.\\n\\nAvoid: literal French syntax, Dutch/French hybrids, over-sexy copy, and invented styling advice.",
       de_CH: "Switzerland German - tone of voice Etam\\n\\nSource insight: use the German lexicon from 'Recap Wording CH DE' as the shared DE wording base, adapted for the child locale de_CH. The PIM export locale must remain de_CH.\\n\\nStyle: precise, premium, understated Swiss e-commerce German. Use Swiss spelling: replace ß with ss in Swiss-facing copy, while keeping the same Etam wording hierarchy as Germany. Sound calm, practical and high-quality, less promotional than German marketplace copy.\\n\\nLexicon vocabulary to prefer: BH, Ohne Buegel, Ohne Schalen, Mit Buegel, Triangel, Leichte Schalen, Push-ups, Bralettes, Ringerruecken, Traegerloser BH, Sport-BH, Bandeau, Bodys, Pyjamas, Hose, Shorts, Sport-Tops, Jacken, Hausschuhe, Pouches, Jumpsuit, Nachthemd, Kimonos, Pyjama-Oberteil, Pyjama-Hose, Bikini-Top, Bikini-Hose, Bikini-Slip, Spitze, Stickerei, Baumwolle, Mikrofaser, Satin, nahtlos.\\n\\nTitle lexicon examples: N.1 - Super Push-up BH; N.2 - Push-up BH mit tiefem Dekollete; N.3 - Bralette Push-up BH. Use the title lexicon wording when the French title is covered, then adapt only what is needed for material, pack, color or shape.\\n\\nCommon corrections: use mit Print instead of mit Muster/mit Motiven; Shorty or Shortys instead of shorties; Triangel instead of Dreieck; Balconnette instead of Balconette when this shape is meant; Slip instead of Hoeschen; Hausschuhe instead of Pantoletten/Pantoffeln; Perioden instead of Menstruation; Savoir-faire instead of Know-how; 2-teiliger Pyjama instead of Pyjama-Set 2-teilig; Samt-Effekt instead of Samt-Optik; Rippstrick instead of Rippeffekt; irisierende Socken instead of glaenzende Socken.\\n\\nDescription pattern: start with comfort, fit or feel, then material and construction, then benefit for Alltag, discreet wear, support or silhouette. Keep it factual and elegant.\\n\\nAvoid: ß in de_CH, literal French structure, French nouns left in German, unsupported seduction language, invented styling advice, and German that sounds machine-translated.",
       de_DE: "Germany German - tone of voice Etam\\n\\nSource insight: use the German lexicon from 'Recap Wording CH DE' as the main DE wording base. Germany is the parent German language and keeps German spelling with ß.\\n\\nStyle: confident German e-commerce copy, polished but concrete. Lead with comfort, fit, support and material quality, then feminine detail. Preserve ß for Germany: Reißverschluss, Größe, fließend, weiß. Do not normalize Germany copy into Swiss ss spelling.\\n\\nLexicon vocabulary to prefer: BH, Ohne Bügel, Ohne Schalen, Mit Bügel, Triangel, Leichte Schalen, Push-ups, Bralettes, Ringerrücken, Trägerloser BH, Sport-BH, Bandeau, Bodys, Pyjamas, Hose, Shorts, Sport-Tops, Jacken, Hausschuhe, Pouches, Jumpsuit, Nachthemd, Kimonos, Pyjama-Oberteil, Pyjama-Hose, Bikini-Top, Bikini-Hose, Bikini-Slip, Spitze, Stickerei, Baumwolle, Mikrofaser, Satin, nahtlos.\\n\\nTitle lexicon examples: N.1 - Super Push-up BH; N.2 - Push-up BH mit tiefem Dekolleté; N.3 - Bralette Push-up BH. Use the title lexicon wording when the French title is covered, then adapt only what is needed for material, pack, color or shape.\\n\\nCommon corrections: use mit Print instead of mit Muster/mit Motiven; Shorty or Shortys instead of shorties; Triangel instead of Dreieck; Balconnette instead of Balconette when this shape is meant; Slip instead of Höschen; Hausschuhe instead of Pantoletten/Pantoffeln; Perioden instead of Menstruation; Savoir-faire instead of Know-how; 2-teiliger Pyjama instead of Pyjama-Set 2-teilig; Samt-Effekt instead of Samt-Optik; Rippstrick instead of Rippeffekt; irisierende Socken instead of glänzende Socken.\\n\\nDescription pattern: open with comfort, fit, support or feel, then material and detail, then the benefit: everyday comfort, smooth under clothing, flattering shape or natural support. Keep copy concise, concrete and retail-ready.\\n\\nAvoid: Swiss ss spelling in de_DE when ß is correct, literal French syntax, French nouns left in German, invented occasion claims, overly sensual wording, and clumsy agreement such as dieser 3er-Pack Baumwollslips."

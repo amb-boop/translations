@@ -56,6 +56,8 @@ Feed URLs:
 - Poland feed: `https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_pl_pl_lengow_mcvt.csv`
 - Czech Republic feed: `https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_cz_cz_lengow_mcvt.csv`
 - United Kingdom feed: `https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_uk_en_gb_lengow_mcvt.csv`
+- United States feed: `https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_us_en_us_productfeed_mcvt.csv`
+- Mexico feed: `https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_mx_es_lengow_mcvt.csv`
 - Belgium Flemish feed: `https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_be_nl_be_lengow_mcvt.csv`
 - Switzerland German feed: `https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_ch_de_ch_lengow_mcvt.csv`
 - Germany feed: `https://productfeed.etam.com/dw/PROD/PRODUCT_FEED/PIM/etam_de_de_lengow_mcvt.csv`
@@ -185,6 +187,8 @@ es_translation_queue.csv
 pl_translation_queue.csv
 cz_translation_queue.csv
 uk_translation_queue.csv
+us_translation_queue.csv
+mx_translation_queue.csv
 be_nl_translation_queue.csv
 ch_de_translation_queue.csv
 de_translation_queue.csv
