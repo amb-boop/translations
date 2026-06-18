@@ -1,0 +1,74 @@
+name: Update localization tool
+
+on:
+  schedule:
+    # 08:00 Paris during summer time, twice a week.
+    - cron: "0 6 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-localization-tool
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Restore incremental baseline
+        uses: actions/cache@v4
+        with:
+          path: data/baseline
+          key: localization-baseline-${{ github.run_id }}
+          restore-keys: |
+            localization-baseline-
+
+      - name: Generate current tool from feeds
+        run: npm run generate -- --online --incremental
+
+      - name: Promote generated HTML to online interface
+        run: |
+          mkdir -p docs
+          cp review_interface.html docs/index.html
+
+      - name: Configure Git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit generated interface on main
+        run: |
+          git add docs/index.html
+          if git diff --cached --quiet; then
+            echo "No main update needed."
+          else
+            git commit -m "Refresh localization tool data [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Publish static page to gh-pages
+        run: |
+          git fetch origin gh-pages
+          rm -rf ../gh-pages-publish
+          git worktree add ../gh-pages-publish origin/gh-pages
+          cp docs/index.html ../gh-pages-publish/index.html
+          cd ../gh-pages-publish
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No gh-pages update needed."
+          else
+            git commit -m "Publish refreshed localization tool [skip ci]"
+            git push origin HEAD:gh-pages
+          fi

@@ -1,8 +1,8 @@
 # Etam Localization MVP
 
-Weekly localization review tool for Etam product feeds.
+Localization review tool for Etam product feeds.
 
-The official business interface is `review_interface.html`. The Excel workbook is kept only as an old fallback artifact and should not be used as the source of validation.
+The official business interface is the online HTML tool. The Excel workbook is kept only as an old fallback artifact and should not be used as the source of validation.
 
 Online interface: `https://amb-boop.github.io/translations/`
 
@@ -29,13 +29,17 @@ Default behavior:
 npm run generate -- --online --incremental
 ```
 
-Recommended weekly launcher:
+Official automatic update:
+
+The GitHub workflow `.github/workflows/update-tool.yml` refreshes the online HTML tool twice a week, every Monday and Thursday morning. It downloads the live Lengow/Product Feed URLs, regenerates the interface, updates `docs/index.html`, and publishes the same HTML to `gh-pages`.
+
+Local fallback launcher:
 
 ```powershell
 .\run_weekly_update.ps1
 ```
 
-Install the weekly Windows task:
+Install the fallback Windows task:
 
 ```powershell
 .\install_weekly_update_task.ps1
