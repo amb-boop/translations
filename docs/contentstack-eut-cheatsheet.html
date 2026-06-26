@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contentstack EUT — Synthèse & Cheat Sheet</title>
+<style>
+  :root {
+    --cream: #FAF9F4;
+    --beige: #DED1BF;
+    --noir: #1a1a1a;
+    --gris: #6b6b6b;
+    --accent: #2c2c2c;
+    --border: #d0c8bc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--noir);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  header {
+    background: var(--noir);
+    color: var(--cream);
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  header span { font-size: 12px; color: var(--beige); }
+  nav {
+    background: var(--beige);
+    padding: 12px 48px;
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+  }
+  nav a { color: var(--noir); text-decoration: none; }
+  nav a:hover { text-decoration: underline; }
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 48px 80px; }
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--noir);
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 24px 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gris);
+  }
+  p { margin-bottom: 12px; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+  thead tr { background: var(--noir); color: var(--cream); }
+  thead th { padding: 9px 12px; text-align: left; font-weight: 500; }
+  tbody tr:nth-child(even) { background: #f0ede6; }
+  tbody tr:hover { background: var(--beige); }
+  td, th { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  td:first-child { font-weight: 500; white-space: nowrap; }
+
+  /* Cards */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+  }
+  .card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--gris);
+    margin-bottom: 6px;
+  }
+  .card .title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: var(--gris); margin: 0; }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    background: var(--beige);
+    border-radius: 2px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    margin: 2px;
+  }
+  .tag.green { background: #d4edda; color: #1a5c2a; }
+  .tag.orange { background: #fff3cd; color: #7a4f00; }
+  .tag.red { background: #f8d7da; color: #721c24; }
+
+  /* Limits grid */
+  .limits {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .limit-item {
+    background: white;
+    border-left: 3px solid var(--noir);
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .limit-item strong { display: block; font-size: 18px; font-weight: 700; }
+  .limit-item span { color: var(--gris); font-size: 12px; }
+
+  /* Mapping */
+  .mapping-table td:nth-child(2) { color: var(--gris); font-style: italic; }
+  .mapping-table td:nth-child(3) { font-weight: 400; }
+
+  /* Flow */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .flow-step {
+    background: var(--noir);
+    color: var(--cream);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .flow-arrow {
+    color: var(--gris);
+    font-size: 18px;
+    padding: 0 4px;
+  }
+
+  /* Roles */
+  .roles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .role-card {
+    border: 1px solid var(--border);
+    padding: 12px;
+    background: white;
+  }
+  .role-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .role-card ul { padding-left: 16px; font-size: 12px; color: var(--gris); }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 12px;
+    color: var(--gris);
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Contentstack EUT — Synthèse & Cheat Sheet</h1>
+    <div style="margin-top:6px; font-size:13px; color:var(--beige)">End User Training · 40 leçons · 3h08</div>
+  </div>
+  <span>Etam e-commerce · Juin 2026</span>
+</header>
+
+<nav>
+  <a href="#synthese">Synthèse</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+  <a href="#limites">Limites clés</a>
+  <a href="#mapping">Mapping métier</a>
+  <a href="#workflow">Workflow éditorial</a>
+</nav>
+
+<main>
+
+  <!-- SYNTHÈSE -->
+  <section id="synthese">
+    <h2>Synthèse</h2>
+    <p>Contentstack est un CMS <strong>headless et composable</strong> : il stocke et livre le contenu via API, indépendamment de tout frontend. Architecture MACH (Microservices, API-first, Cloud-native, Headless).</p>
+
+    <h3>Hiérarchie des entités</h3>
+    <table>
+      <thead><tr><th>Niveau</th><th>Entité</th><th>Analogie</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Organisation</td><td>L'entreprise (l'étagère)</td><td>Conteneur global, gestion des utilisateurs et stacks</td></tr>
+        <tr><td>2</td><td>Stack</td><td>Un projet / site (le livre)</td><td>Repository de tout le contenu d'un site</td></tr>
+        <tr><td>3</td><td>Content Type</td><td>Un moule / blueprint</td><td>Schéma qui définit la structure d'une page ou composant</td></tr>
+        <tr><td>4</td><td>Entry</td><td>Une page ou un objet créé</td><td>Contenu réel rempli à partir du Content Type</td></tr>
+        <tr><td>4</td><td>Asset</td><td>Médiathèque</td><td>Fichiers uploadés (images, vidéos, PDF)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Cycle de vie d'un contenu</h3>
+    <div class="flow">
+      <div class="flow-step">Créer Content Type</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Créer Entry</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Live Preview</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Workflow / Approbation</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Publish</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Publish Queue</div>
+    </div>
+
+    <h3>Types de Content Types</h3>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Single</div>
+        <div class="title">Page unique</div>
+        <p>Une seule entry possible. Ex : Homepage, À propos, CGV.</p>
+      </div>
+      <div class="card">
+        <div class="label">Multiple</div>
+        <div class="title">Pages multiples</div>
+        <p>N entries du même schema. Ex : fiches produit, articles de blog.</p>
+      </div>
+      <div class="card">
+        <div class="label">Multiple + Référence</div>
+        <div class="title">Composant réutilisable</div>
+        <p>Entries non-page référencées ailleurs. Ex : auteurs, catégories.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHEAT SHEET CHAMPS -->
+  <section id="cheatsheet">
+    <h2>Cheat Sheet — Champs</h2>
+
+    <h3>Champs simples</h3>
+    <table>
+      <thead><tr><th>Champ</th><th>Usage</th><th>Limites notables</th></tr></thead>
+      <tbody>
+        <tr><td>Single Line Textbox</td><td>Titre court, nom, code</td><td>Regex possible, pas de retour ligne</td></tr>
+        <tr><td>Multi-Line Textbox</td><td>Description brute, adresse</td><td>Retours ligne, pas de formatage</td></tr>
+        <tr><td>Number</td><td>Prix, quantité, code postal</td><td>Min/Max configurable</td></tr>
+        <tr><td>Boolean</td><td>Toggle on/off, case à cocher</td><td>Défaut = false</td></tr>
+        <tr><td>Date</td><td>Date de publication, date promo</td><td>Format ISO, option Hide Time</td></tr>
+        <tr><td>File</td><td>Image, vidéo, PDF</td><td>Max 700 MB (images : 50 MB par défaut)</td></tr>
+        <tr><td>Link</td><td>CTA bouton, lien menu</td><td>2 sous-champs : Title + URL</td></tr>
+        <tr><td>Select</td><td>Choix dans liste, taille, statut</td><td>Max 100 choix, key-value pair possible</td></tr>
+        <tr><td>URL</td><td>Chemin de la page publiée</td><td>Auto-générable depuis le titre</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Champs avancés</h3>
+    <table>
+      <thead><tr><th>Champ</th><th>Usage</th><th>Points clés</th></tr></thead>
+      <tbody>
+        <tr><td>Reference</td><td>Lier des entries entre elles</td><td>Self / Single CT / Multi CT · max 20 CT · profondeur 3 recommandée</td></tr>
+        <tr><td>Group</td><td>Grouper des champs répétables</td><td>Max 100 champs dans le groupe · FAQ, carousel, menu</td></tr>
+        <tr><td>Modular Blocks</td><td>Composition dynamique de page</td><td>Max 20 blocs · 5 champs MB par CT · imbrication max 2 niveaux</td></tr>
+        <tr><td>Global Field</td><td>Groupe réutilisable cross-CT</td><td>Max 25 par CT · défini une fois, utilisé partout (ex : SEO, bouton)</td></tr>
+        <tr><td>HTML RTE</td><td>Contenu riche formaté (HTML)</td><td>100 embeds max · 10 CT référençables · sortie HTML string</td></tr>
+        <tr><td>JSON RTE</td><td>Contenu riche formaté (JSON)</td><td>10 par CT · 30 Ko max · 15 CT référençables · syntaxe code 60+ langues</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Field Visibility Rules</h3>
+    <p>Afficher / masquer des champs selon la valeur d'un autre champ. Max <strong>10 règles</strong> par CT, <strong>5 conditions</strong> par règle, <strong>5 champs cibles</strong> par règle. Réservé aux rôles Owner / Admin / Developer.</p>
+
+    <h3>Publishing</h3>
+    <table>
+      <thead><tr><th>Concept</th><th>Définition</th></tr></thead>
+      <tbody>
+        <tr><td>Environment</td><td>Serveur de destination (Dev / Staging / Prod). Contenu publié = accessible via API sur cet env.</td></tr>
+        <tr><td>Live Preview</td><td>Preview en temps réel sans publier. Nécessite une config développeur. HTTPS obligatoire.</td></tr>
+        <tr><td>Publish Queue</td><td>File d'attente des actions publish/unpublish. Icône verte = dernière version · orange = version ancienne · gris horloge = schedulé.</td></tr>
+        <tr><td>Releases</td><td>Lot d'entries/assets à publier simultanément. Max 500 items. Idéal pour lancements ou promos.</td></tr>
+        <tr><td>Scheduling</td><td>Publication différée : sélectionner "Later" + date/heure lors du publish.</td></tr>
+        <tr><td>Localization</td><td>+200 locales disponibles. Langue de fallback configurable. Héritage sur 1 niveau.</td></tr>
+        <tr><td>Versioning</td><td>Chaque save = nouvelle version numérotée. Versionnage entries ET assets. Nommage personnalisable.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- LIMITES CLÉS -->
+  <section id="limites">
+    <h2>Limites clés à retenir</h2>
+    <div class="limits">
+      <div class="limit-item"><strong>100</strong><span>champs max par Content Type</span></div>
+      <div class="limit-item"><strong>200</strong><span>caractères max pour un UID de CT</span></div>
+      <div class="limit-item"><strong>100</strong><span>choix max dans un Select field</span></div>
+      <div class="limit-item"><strong>20</strong><span>blocs max par Modular Blocks field</span></div>
+      <div class="limit-item"><strong>5</strong><span>champs Modular Blocks max par CT</span></div>
+      <div class="limit-item"><strong>25</strong><span>Global Fields max par CT</span></div>
+      <div class="limit-item"><strong>500</strong><span>items max par Release</span></div>
+      <div class="limit-item"><strong>50</strong><span>tags max par Entry</span></div>
+      <div class="limit-item"><strong>10</strong><span>workflows max par Stack</span></div>
+      <div class="limit-item"><strong>20</strong><span>stages max par workflow</span></div>
+      <div class="limit-item"><strong>100</strong><span>discussions actives max par entry/locale</span></div>
+      <div class="limit-item"><strong>700 MB</strong><span>taille max d'un fichier uploadé</span></div>
+      <div class="limit-item"><strong>30 KB</strong><span>taille max données JSON RTE</span></div>
+      <div class="limit-item"><strong>1000</strong><span>utilisateurs max par organisation</span></div>
+      <div class="limit-item"><strong>500</strong><span>assets max par dossier (défaut)</span></div>
+      <div class="limit-item"><strong>5</strong><span>niveaux max de dossiers Assets</span></div>
+    </div>
+  </section>
+
+  <!-- MAPPING MÉTIER ETAM -->
+  <section id="mapping">
+    <h2>Mapping métier — Cas d'usage Etam</h2>
+    <table class="mapping-table">
+      <thead><tr><th>Besoin Etam</th><th>Concept Contentstack</th><th>Config recommandée</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Fiche produit</td>
+          <td>Content Type "Multiple"</td>
+          <td>Fields : Title, Description (HTML RTE ou Multi-line), File (image produit), Select (catégorie, couleur, taille), Number (prix), Boolean (actif/inactif), Reference (catégorie, marque)</td>
+        </tr>
+        <tr>
+          <td>Homepage saisonnière</td>
+          <td>Content Type "Single" + Modular Blocks</td>
+          <td>Blocs : Hero banner, Carrousel promo, Push catégorie, Bandeau transport — chaque bloc = un composant indépendant, ordonnancement libre sans dev</td>
+        </tr>
+        <tr>
+          <td>Page campagne / collab (ex: Etam x Rouje)</td>
+          <td>Content Type "Single" ou entrée dédiée</td>
+          <td>URL field custom (/collab-2), Modular Blocks pour structurer les sections, scheduling pour le teaser</td>
+        </tr>
+        <tr>
+          <td>Gestion des catégories</td>
+          <td>Content Type "Multiple" réutilisable</td>
+          <td>Entries catégories référencées dans les fiches produit via Reference field · mise à jour en un point, propagée partout</td>
+        </tr>
+        <tr>
+          <td>Contenu multilingue (FR/BE/ES…)</td>
+          <td>Localization</td>
+          <td>Master = fr-FR · Fallback par marché · localiser uniquement les champs texte, garder assets non-localisés (Non-localizable)</td>
+        </tr>
+        <tr>
+          <td>Lancement promo / soldes</td>
+          <td>Releases + Scheduling</td>
+          <td>Préparer toutes les entries dans une Release · scheduler le deploy à J-1 minuit · unpublish schedulé en fin de période</td>
+        </tr>
+        <tr>
+          <td>Bandeau transport / port offert</td>
+          <td>Global Field ou Content Type Single</td>
+          <td>Global Field "Bandeau alerte" (texte + lien) réutilisé sur toutes les pages · Boolean pour activation rapide</td>
+        </tr>
+        <tr>
+          <td>Enrichissement descriptions produit</td>
+          <td>HTML RTE ou JSON RTE</td>
+          <td>JSON RTE recommandé : sortie JSON consommable par le moteur de rendu, compatible multi-device · possibilité d'embed assets inline</td>
+        </tr>
+        <tr>
+          <td>SEO pages catégories / LP</td>
+          <td>Global Field "SEO"</td>
+          <td>Champs : SEO Title (Single line), Meta Description (Multi-line), OG Image (File) · Global Field réutilisé sur chaque CT de page</td>
+        </tr>
+        <tr>
+          <td>Workflow de validation contenu</td>
+          <td>Workflows + Publish Rules</td>
+          <td>Stages : Rédaction → Relecture → Validation Merch → Publish · Publish Rule = blocage publish Prod sans passage au stage "Validé"</td>
+        </tr>
+        <tr>
+          <td>Gestion équipe contenu</td>
+          <td>Roles personnalisés</td>
+          <td>Rédactrice : Write entries · Merch Lead : Approve + Publish · Dev : accès Content Type · interdire publish Prod aux rôles non valideurs</td>
+        </tr>
+        <tr>
+          <td>Preview avant mise en ligne</td>
+          <td>Live Preview</td>
+          <td>Nécessite config dev côté frontend · permet de voir les modifs en temps réel sans sauvegarder · à configurer par env (staging)</td>
+        </tr>
+        <tr>
+          <td>Labels / organisation des CT</td>
+          <td>Labels</td>
+          <td>Ex : label "Campagnes", "Produits", "SEO", "Transport" · visibles de tous les users du stack · hiérarchisables</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- WORKFLOW ÉDITORIAL -->
+  <section id="workflow">
+    <h2>Workflow éditorial recommandé Etam</h2>
+
+    <h3>Rôles à configurer</h3>
+    <div class="roles">
+      <div class="role-card">
+        <h4>Rédactrice contenu</h4>
+        <ul>
+          <li>Create / Edit entries</li>
+          <li>Upload assets</li>
+          <li>Accès staging preview</li>
+          <li>Pas de publish Prod</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4>Merch / Responsable</h4>
+        <ul>
+          <li>Review entries</li>
+          <li>Valider workflow stage</li>
+          <li>Publish staging</li>
+          <li>Approbation publish Prod</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4>Développeur</h4>
+        <ul>
+          <li>Créer / modifier Content Types</li>
+          <li>Config environments</li>
+          <li>Config Live Preview</li>
+          <li>Config Field Visibility Rules</li>
+        </ul>
+      </div>
+      <div class="role-card">
+        <h4>Admin Stack</h4>
+        <ul>
+          <li>Gérer utilisateurs</li>
+          <li>Créer workflows</li>
+          <li>Définir Publish Rules</li>
+          <li>Toutes permissions</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Stages workflow recommandés</h3>
+    <div class="flow" style="margin-top:16px">
+      <div class="flow-step">Brouillon</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">En relecture</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Validé Merch</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Prêt à publier</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Publié Prod</div>
+    </div>
+    <p style="margin-top:12px; font-size:13px; color:var(--gris)">Publish Rule : publish sur Prod bloqué tant que le stage "Prêt à publier" n'est pas atteint + approbation Merch Lead requise.</p>
+
+    <h3>Statuts publish queue</h3>
+    <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:8px;">
+      <span class="tag green">Vert = version actuelle publiée</span>
+      <span class="tag orange">Orange = version ancienne publiée</span>
+      <span class="tag" style="background:#e8e8e8; color:#444">Gris horloge = publication schedulée</span>
+      <span class="tag red">Pas d'icône = jamais publié</span>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Contentstack End User Training — Synthèse interne Etam · Juin 2026
+</footer>
+
+</body>
+</html>
