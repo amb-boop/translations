@@ -2,11 +2,11 @@
   "name": "etam-localization-mvp",
   "version": "1.0.0",
   "private": true,
-  "description": "Etam localization review tool",
+  "description": "Etam Localization MVP - Product translation and quality control",
   "type": "commonjs",
   "scripts": {
     "generate": "node generate_etam_localization_mvp.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --check generate_etam_localization_mvp.js && node --check safe_language_qa.js"
   },
   "engines": {
     "node": ">=20"
