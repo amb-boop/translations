@@ -1487,7 +1487,7 @@ function proposalFromSameModel(item, sameModelItems) {
 function proposeDescription(localItem, frItem, locale, localByModel, frByModel) {
   if (frItem?.long_description) {
     return {
-      text: adaptFrenchDescription(frItem.long_description, frItem.title, locale),
+      text: "",
       source: "FR exact",
       note: "Uses the exact French long description as source for localization."
     };
@@ -1503,7 +1503,7 @@ function proposeDescription(localItem, frItem, locale, localByModel, frByModel) 
   const frSameModel = proposalFromSameModel(frItem || localItem, frByModel.get((frItem || localItem)?.model_id) || []);
   if (frSameModel) {
     return {
-      text: adaptFrenchDescription(frSameModel.long_description, frSameModel.title, locale),
+      text: "",
       source: "FR same-model",
       note: `Uses French description from ${frSameModel.reference_mc}, another colorway from the same model.`,
     };
@@ -1572,25 +1572,12 @@ function splitForTranslation(text) {
   return chunks;
 }
 
-async function translateFrenchChunk(source, target) {
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=${target}&dt=t&q=${encodeURIComponent(source)}`;
-  let lastError = null;
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`translation HTTP ${response.status}`);
-      const payload = await response.json();
-      return repairText((payload?.[0] || []).map((part) => part?.[0] || "").join(""));
-    } catch (error) {
-      lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
-    }
-  }
-  throw lastError;
+async function translateFrenchChunk(source,target) {
+  // No unapproved public translation endpoint: P0 is review-only.
+  throw new Error("Translation provider not configured: manual localization required");
 }
-
 async function enforceTargetLanguage(rows, messages) {
-  const cache = readJson(TRANSLATION_CACHE_FILE, {});
+  const cache = {}; // old unverified cache invalidated
   let translatedFields = 0;
   let translationFailures = 0;
   const tasks = [];
@@ -1600,19 +1587,12 @@ async function enforceTargetLanguage(rows, messages) {
     const frDescription = repairText(row.current_fr_long_description);
 
     const titleNeedsLocalization = /Title not localized|Missing translation/i.test(row.change_type || "");
-    if (titleNeedsLocalization && frTitle && needsTargetTranslation(row.proposed_title, frTitle)) {
+    if (titleNeedsLocalization && frTitle) {
       tasks.push(async () => {
         row.proposed_title = await translateFromFrench(frTitle, row.locale, cache);
       });
     }
-    const curatedTitle = applyCleanTitleTerms(frTitle, row.locale);
-    const glossaryTitle = curatedTitle && curatedTitle !== frTitle && !hasFrenchResidue(curatedTitle)
-      ? curatedTitle
-      : glossaryTitleFromFrench(frTitle, row.locale);
-    if (glossaryTitle && shouldForceGlossaryTitle(row)) {
-      row.proposed_title = glossaryTitle;
-    }
-    if (frDescription && needsTargetTranslation(row.proposed_long_description, frDescription)) {
+    if (frDescription && /Missing long description|French source changed/i.test(row.change_type || "")) {
       tasks.push(async () => {
         row.proposed_long_description = await translateFromFrench(frDescription, row.locale, cache);
       });
@@ -1627,6 +1607,14 @@ async function enforceTargetLanguage(rows, messages) {
     if (row.locale === "en_UK") {
       row.proposed_title = polishUkLocalizationText(row.proposed_title);
       row.proposed_long_description = polishUkLocalizationText(row.proposed_long_description);
+    }
+    for (const [field, sourceField] of [["proposed_title","current_fr_title"],["proposed_long_description","current_fr_long_description"]]) {
+      const qa = require("./safe_language_qa").check(row[field],row[sourceField],row.locale);
+      if (qa.status === "Blocked") {
+        row[field] = "";
+        addIssue(row, `Blocked proposal: ${qa.rule}`);
+        row.status = "Blocked";
+      }
     }
     markProposedTextQuality(row);
     row.recommended_content_block = contentBlock(row.proposed_title, row.proposed_long_description);
@@ -1877,12 +1865,12 @@ function buildQueues(snapshots, previousSnapshots, options) {
       if (!needsValidation) continue;
       const proposal = frSourceChanged && frItem?.long_description
         ? {
-          text: adaptFrenchDescription(frItem.long_description, frItem.title, locale),
+          text: "",
           source: "FR exact",
           note: "French source changed. Existing local content is kept, with a localized update proposed for review.",
         }
         : proposeDescription(effectiveLocal, frItem, locale, localByModel, frByModel);
-      const proposedTitle = titleNotLocalized ? translateTitle(frItem?.title || effectiveLocal.title, locale, effectiveLocal) : effectiveLocal.title;
+      const proposedTitle = titleNotLocalized ? "" : effectiveLocal.title;
       const proposedDescription = missingDescription || frSourceChanged
         ? proposal.text
         : effectiveLocal.long_description;
@@ -2092,20 +2080,12 @@ function convertLegacyRows(legacyData, seasonLookup = new Map()) {
         isClearlyFrenchTitle(currentTitle, frTitle) ||
         isClearlyFrenchTitle(proposedTitleRaw, frTitle)
       );
-      let proposedTitle = titleNeedsLocalization
-        ? translateTitle(frTitle || proposedTitleRaw || currentTitle, locale, { title: currentTitle })
-        : currentTitle;
-      if (proposedTitle && isFrenchLike(proposedTitle)) {
-        proposedTitle = applyCleanTitleTerms(proposedTitle, locale);
-      }
-      if (proposedTitle && isFrenchLike(proposedTitle) && frTitle) {
-        proposedTitle = translateTitle(frTitle, locale, {});
-      }
+      let proposedTitle = titleNeedsLocalization ? "" : currentTitle;
       const legacyProposalDescription = repairText(item.proposed_description);
       const proposedDescription = hasLocalLongDescription
         ? currentDescription
         : frDescription
-          ? adaptFrenchDescription(frDescription, frTitle, locale)
+          ? ""
           : "";
       const issues = splitLegacyIssues(item).filter((issue) => {
         if (/Title not localized|Missing translation/i.test(issue)) return !titleIsAlreadyLocal && titleNeedsLocalization;
@@ -2427,9 +2407,9 @@ function renderReviewInterface(summary, rows) {
       <select id="seasonFilter"><option value="">All seasons</option>${seasonOptionsHtml}<option value="__unknown">Season not available</option></select>
       <span class="count" id="count"></span>
       <button id="draftOnly">To review</button>
-      <button id="approveTitles">Validate visible titles</button>
-      <button id="approveDescriptions">Validate visible descriptions</button>
-      <button id="approveAllVisible">Ready visible for PIM</button>
+      <button hidden disabled id="approveTitles">Validate visible titles</button>
+      <button hidden disabled id="approveDescriptions">Validate visible descriptions</button>
+      <button hidden disabled id="approveAllVisible">Ready visible for PIM</button>
       <button class="primary" id="exportCsv">Export approved for PIM</button>
       <span class="export-status" id="exportStatus"></span>
     </div>
@@ -2483,10 +2463,10 @@ function renderReviewInterface(summary, rows) {
     const validationStorageKey = "etamLocalizationValidation:" + "${RUN_DATE}";
     const savedValidationState = JSON.parse(localStorage.getItem(validationStorageKey) || "{}");
     function baseTitle(row) {
-      return row.proposed_title || row.current_local_title || row.current_fr_title || "";
+      return row.proposed_title || row.current_local_title || "";
     }
     function baseDescription(row) {
-      return row.proposed_long_description || row.current_local_long_description || row.current_fr_long_description || "";
+      return row.proposed_long_description || row.current_local_long_description || "";
     }
     function reusableSavedState(row) {
       const saved = savedValidationState[rowKey(row)];
@@ -2566,7 +2546,7 @@ function renderReviewInterface(summary, rows) {
       });
     }
     function isReady(saved) {
-      return Boolean((saved.titleOk || !saved.titleRequired) && (saved.descriptionOk || !saved.descriptionRequired));
+      return Boolean(saved.titleOk && saved.descriptionOk && saved.title.trim() && saved.description.trim() && !saved.blocked);
     }
     function titleRequiresValidation(row) {
       return /Title not localized|Missing translation/i.test(row.change_type || "");
@@ -2584,7 +2564,7 @@ function renderReviewInterface(summary, rows) {
       const country = Object.values(countrySummary).find(item => item.locale === activeLocale);
       const metrics = country?.metrics || {};
       const countryRows = rows.map((row, index) => ({ row, index })).filter(({ row }) => row.locale === activeLocale);
-      const ready = countryRows.filter(({ index }) => isReady(state.get(index))).length;
+      const ready = countryRows.filter(({ index }) => isReady(state.get(index)) && !/Blocked proposal/.test(row.change_type || "")).length;
       const descriptionsUpToDate = countryRows.filter(({ index }) => !state.get(index).descriptionRequired || state.get(index).descriptionOk).length;
       recap.innerHTML = '<h2>' + html(country?.name || activeLocale) + ' recap</h2>' +
         '<div class="recap-grid">' +
@@ -2612,6 +2592,7 @@ function renderReviewInterface(summary, rows) {
       count.textContent = visible.length + " rows";
       body.innerHTML = visible.map(({ row, index }) => {
         const saved = state.get(index);
+        saved.blocked = /Blocked proposal/.test(row.change_type || "");
         const ready = isReady(saved);
         saved.titleRequired = titleRequiresValidation(row);
         if (!saved.titleRequired) saved.titleOk = true;
@@ -2674,26 +2655,17 @@ function renderReviewInterface(summary, rows) {
     search.addEventListener("input", render);
     seasonFilter.addEventListener("change", render);
     document.getElementById("draftOnly").addEventListener("click", () => { draftOnly = !draftOnly; render(); });
-    document.getElementById("approveTitles").addEventListener("click", () => {
-      filteredRows().forEach(({ index }) => { state.get(index).titleOk = true; });
-      persistValidationState();
-      render();
-    });
-    document.getElementById("approveDescriptions").addEventListener("click", () => {
-      filteredRows().forEach(({ index }) => { state.get(index).descriptionOk = true; });
-      persistValidationState();
-      render();
-    });
-    document.getElementById("approveAllVisible").addEventListener("click", () => {
-      filteredRows().forEach(({ index }) => {
-        state.get(index).titleOk = true;
-        state.get(index).descriptionOk = true;
-      });
+    // approveTitles disabled in P0.
+
+    // approveDescriptions disabled in P0.
+
+    // approveAllVisible disabled in P0.
+
       persistValidationState();
       render();
     });
     document.getElementById("exportCsv").addEventListener("click", () => {
-      const visible = rows.map((row, index) => ({ row, index })).filter(({ row, index }) => row.locale === activeLocale && isReady(state.get(index)));
+      const visible = rows.map((row, index) => ({ row, index })).filter(({ row, index }) => row.locale === activeLocale && isReady(state.get(index)) && !/Blocked proposal/.test(row.change_type || ""));
       if (visible.length === 0) {
         alert("No approved rows to export for this country.");
         exportStatus.textContent = "No approved rows to export.";
@@ -2902,30 +2874,8 @@ async function main() {
   }
 
   const { loaded, messages } = await loadFeeds(options);
-  if (Object.keys(loaded).length === 0) {
-    const legacyFallback = tryLegacyFallback(messages);
-    if (legacyFallback) {
-      await enforceTargetLanguage(legacyFallback.rows, messages);
-      const rowsByLocale = {};
-      for (const row of legacyFallback.rows) {
-        if (!rowsByLocale[row.locale]) rowsByLocale[row.locale] = [];
-        rowsByLocale[row.locale].push(row);
-      }
-      const countryResults = Object.fromEntries(Object.entries(COUNTRIES).map(([locale, country]) => [locale, {
-        locale,
-        name: country.name,
-        csv: country.csv,
-        rows: rowsByLocale[locale] || [],
-      }]));
-      writeOutputs(legacyFallback.summary, countryResults, legacyFallback.rows);
-      await publishToGoogleSheets(options, legacyFallback.summary, legacyFallback.rows);
-      console.log(messages.join("\n"));
-      console.log(legacyFallback.summary.first_run_message);
-      console.log(`Review interface: ${path.join(ROOT, "review_interface.html")}`);
-      console.log(`Dashboard: ${path.join(ROOT, "dashboard.html")}`);
-      return;
-    }
-  }
+  const missing = Object.keys(FEEDS).filter(locale => !loaded[locale]);
+  if (missing.length) throw new Error(`Missing feeds: ${missing.join(", ")}. Refusing to overwrite published interface.`);
   const snapshots = {};
   for (const [locale, feedInfo] of Object.entries(loaded)) {
     snapshots[locale] = makeSnapshot(locale, feedInfo, previousSnapshots[locale]);
@@ -2972,7 +2922,9 @@ async function main() {
   console.log(`Dashboard: ${path.join(ROOT, "dashboard.html")}`);
 }
 
-main().catch((error) => {
+if (require.main === module) main().catch((error) => {
   console.error(`Generation failed: ${error.message}`);
   process.exitCode = 1;
 });
+
+module.exports = { enforceTargetLanguage, FEEDS };
